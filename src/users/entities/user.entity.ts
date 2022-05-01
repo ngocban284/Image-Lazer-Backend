@@ -1,8 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+
+export type UserDocument = Document & User;
 
 @Schema({ timestamps: true })
-export class User extends Document {
+export class User {
   @Prop({ required: true, unique: true })
   userName: string;
 
@@ -21,7 +24,11 @@ export class User extends Document {
   @Prop({ required: false })
   profile_url: string;
 
-  @Prop({ required: true, default: false })
+  @Prop({
+    required: true,
+    default:
+      'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+  })
   avatar: string;
 
   @Prop({ required: false, default: 0 })
