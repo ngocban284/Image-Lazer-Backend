@@ -14,6 +14,16 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
+  async getAllUsers() {
+    let users;
+    try {
+      users = await this.userModel.find();
+    } catch {
+      throw new InternalServerErrorException();
+    }
+    return users;
+  }
+
   async getUserByEmail(email: string) {
     let user;
     try {
