@@ -26,5 +26,7 @@ import { ConfigService } from './config/config.service';
     SavePostsModule,
     FollowsModule,
   ],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {}

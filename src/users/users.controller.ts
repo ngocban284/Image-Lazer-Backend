@@ -6,20 +6,20 @@ import {
   Controller,
   Delete,
   Get,
-  Put,
   Post,
   Patch,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Connection, Schema as MongoSchema } from 'mongoose';
+import { Schema as MongoSchema, Connection } from 'mongoose';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { InjectConnection } from '@nestjs/mongoose';
 
 @Controller('users')
 export class UsersController {
   constructor(
-    private readonly mongoConnection: Connection,
+    @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
   ) {}
 

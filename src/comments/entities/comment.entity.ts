@@ -1,10 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
-export type CommentDocument = Document & Comment;
-
 Schema({ timestamps: true });
-export class Comment {
+export class Comment extends Document {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
   user_id: MongoSchema.Types.ObjectId;
 

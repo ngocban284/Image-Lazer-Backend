@@ -1,10 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
-export type LikeDocument = Document & Like;
-
 Schema({ timestamps: true });
-export class Like {
+export class Like extends Document {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
   user_id: MongoSchema.Types.ObjectId;
 

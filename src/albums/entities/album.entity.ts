@@ -1,10 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongoSchema } from 'mongoose';
 
-export type AlbumDocument = Document & Album;
-
 Schema({ timestamps: true });
-export class Album {
+export class Album extends Document {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
   user_id: MongoSchema.Types.ObjectId;
 
