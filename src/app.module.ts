@@ -5,6 +5,7 @@ import { AlbumsModule } from './albums/albums.module';
 import { SavePostsModule } from './savePosts/saveposts.module';
 import { FollowsModule } from './follows/follows.module';
 import { Module } from '@nestjs/common';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { Module } from '@nestjs/common';
     AlbumsModule,
     SavePostsModule,
     FollowsModule,
+    UsersModule,
   ],
 })
 export class AppModule {}
