@@ -54,7 +54,11 @@ export class UserRepository {
       throw new ConflictException('Email already exists');
     }
 
-    user = new this.userModel(createUserDto);
+    console.log(createUserDto);
+    user = new this.userModel({
+      ...createUserDto,
+    });
+    console.log(user);
 
     try {
       await user.save({ session });

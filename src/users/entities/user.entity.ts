@@ -8,7 +8,7 @@ export class User extends Document {
   userName: string;
 
   @Prop({ required: true })
-  fullname: string;
+  fullName: string;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -23,7 +23,7 @@ export class User extends Document {
   profile_url: string;
 
   @Prop({
-    required: true,
+    required: false,
     default:
       'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
   })

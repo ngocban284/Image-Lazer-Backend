@@ -42,6 +42,7 @@ export class UsersController {
   async createUser(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
+    console.log(createUserDto);
     try {
       const user = await this.usersService.createUser(createUserDto, session);
       await session.commitTransaction();
