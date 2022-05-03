@@ -1,0 +1,61 @@
+import {
+  ConflictException,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Schema as MongoSchema, ClientSession } from 'mongoose';
+import { FollowDto } from './dto/followUser.dto';
+import { Follow } from './entities/follow.entity';
+
+export class FollowRepository {
+  constructor(
+    @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
+  ) {}
+
+  async followedUser(user_id: MongoSchema.Types.ObjectId) {
+    const data = await this.followModel
+      .find({ followed_user_id: user_id })
+      .populate('user_id')
+      .populate('followed_user_id');
+
+    return data;
+  }
+
+  async followedByUser(user_id: MongoSchema.Types.ObjectId) {
+    const data = await this.followModel
+      .find({ user_id: user_id })
+      .populate('user_id')
+      .populate('followed_user_id');
+
+    return data;
+  }
+
+  async followUser(followDto: FollowDto, session: ClientSession) {
+    const follow = new this.followModel({
+      ...followDto,
+    });
+
+    try {
+      await follow.save({ session });
+    } catch (error) {
+      if (error.code === 11000) {
+        throw new ConflictException('User already followed');
+      }
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async unfollowUser(unfollowDto: FollowDto, session: ClientSession) {
+    const user_id = unfollowDto.user_id;
+    const followed_user_id = unfollowDto.followed_user_id;
+    try {
+      await this.followModel.deleteOne(
+        { user_id, followed_user_id },
+        { session },
+      );
+    } catch (error) {
+      throw new InternalServerErrorException();
+    }
+  }
+}

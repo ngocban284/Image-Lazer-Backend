@@ -4,7 +4,7 @@ import { Document, Schema as MongoSchema } from 'mongoose';
 Schema({ timestamps: true });
 export class Post extends Document {
   @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
-  user: MongoSchema.Types.ObjectId;
+  user_id: MongoSchema.Types.ObjectId;
 
   @Prop({ required: true })
   photo_url: string;
