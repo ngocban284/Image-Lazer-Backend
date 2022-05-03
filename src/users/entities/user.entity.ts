@@ -50,6 +50,10 @@ UserSchema.pre<UserDocument>('save', function (next) {
   });
 });
 
+<<<<<<< HEAD
 UserSchema.methods.checkPassword = function (password: string) {
+=======
+UserSchema.methods.comparePassword = function (password: string) {
+>>>>>>> dacac53a474783fbc0128e3737323d03e4b501d9
   return bcrypt.compareSync(password, this.password);
 };
