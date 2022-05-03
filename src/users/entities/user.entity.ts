@@ -2,10 +2,8 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-export type UserDocument = Document & User;
-
 @Schema({ timestamps: true })
-export class User {
+export class User extends Document {
   @Prop({ required: true, unique: true })
   userName: string;
 
@@ -37,7 +35,7 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.pre<UserDocument>('save', function (next) {
+UserSchema.pre<User>('save', function (next) {
   if (!this.isModified('password')) {
     return next();
   }
