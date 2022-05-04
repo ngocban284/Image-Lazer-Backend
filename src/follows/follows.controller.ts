@@ -48,7 +48,7 @@ export class FollowsController {
     try {
       const follow = await this.followsService.unfollowUser(followDto, session);
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json({ message: 'Unfollowed' });
+      return res.status(HttpStatus.OK).json({ message: 'Unfollowed', follow });
     } catch {
       await session.abortTransaction();
       throw new Error();
@@ -71,9 +71,6 @@ export class FollowsController {
     @Param('user_id') user_id: Types.ObjectId,
     @Res() res: Response,
   ) {
-    // console.log(user_id);
-    // const id = Object.values(user_id);
-    // console.log(typeof id[0]);
     const list = await this.followsService.followedByUser(user_id);
     return res.status(HttpStatus.OK).json(list);
   }

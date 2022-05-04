@@ -33,9 +33,11 @@ export class FollowRepository {
   }
 
   async followUser(followDto: FollowDto, session: ClientSession) {
-    console.log(followDto);
+    const user_id = followDto.user_id;
+    const followed_user_id = followDto.followed_user_id;
     const follow = new this.followModel({
-      ...followDto,
+      user_id,
+      followed_user_id,
     });
 
     try {

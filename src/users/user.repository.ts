@@ -27,7 +27,7 @@ export class UserRepository {
   async getUserByEmail(email: string) {
     let user;
     try {
-      user = await this.userModel.findOne({ where: { email } });
+      user = await this.userModel.findOne({ email });
     } catch {
       throw new InternalServerErrorException();
     }
