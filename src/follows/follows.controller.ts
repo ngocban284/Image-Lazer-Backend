@@ -48,7 +48,7 @@ export class FollowsController {
     try {
       const follow = await this.followsService.unfollowUser(followDto, session);
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json({ message: 'Unfollowed' });
+      return res.status(HttpStatus.OK).json({ message: 'Unfollowed', follow });
     } catch {
       await session.abortTransaction();
       throw new Error();
