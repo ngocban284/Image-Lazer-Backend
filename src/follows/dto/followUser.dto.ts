@@ -1,10 +1,12 @@
-import { IsOptional } from 'class-validator';
-import { Schema as MongoSchema } from 'mongoose';
+import { IsOptional, IsNotEmpty } from 'class-validator';
+import { Types, ObjectId } from 'mongoose';
 
 export class FollowDto {
   @IsOptional()
-  user_id: MongoSchema.Types.ObjectId;
+  @IsNotEmpty()
+  user_id: Types.ObjectId;
 
   @IsOptional()
-  followed_user_id: MongoSchema.Types.ObjectId;
+  @IsNotEmpty()
+  followed_user_id: Types.ObjectId;
 }

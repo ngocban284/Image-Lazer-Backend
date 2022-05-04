@@ -8,10 +8,12 @@ import { FollowsController } from './follows.controller';
 import { FollowRepository } from './follows.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FollowSchema, Follow } from './entities/follow.entity';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: 'Follow', schema: FollowSchema }]),
+    UsersModule,
+    MongooseModule.forFeature([{ name: Follow.name, schema: FollowSchema }]),
   ],
   controllers: [FollowsController],
   providers: [FollowsService, FollowRepository],

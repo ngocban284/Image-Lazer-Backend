@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { FollowDto } from './dto/followUser.dto';
-import { Schema as MongoSchema, Connection } from 'mongoose';
+import { Schema as MongoSchema, Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Response } from 'express';
 
@@ -48,7 +48,7 @@ export class FollowsController {
     try {
       const follow = await this.followsService.unfollowUser(followDto, session);
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(follow);
+      return res.status(HttpStatus.OK).json({ message: 'Unfollowed' });
     } catch {
       await session.abortTransaction();
       throw new Error();
@@ -57,13 +57,24 @@ export class FollowsController {
     }
   }
 
-  @Get('followed')
-  async followedUser(@Param() user_id: MongoSchema.Types.ObjectId) {
-    return await this.followsService.followedUser(user_id);
+  @Get('followed/:user_id')
+  async followedUser(
+    @Param('user_id') user_id: Types.ObjectId,
+    @Res() res: Response,
+  ) {
+    const list = await this.followsService.followedUser(user_id);
+    return res.status(HttpStatus.OK).json(list);
   }
 
-  @Get('followedBy')
-  async followedByUser(@Param() user_id: MongoSchema.Types.ObjectId) {
-    return await this.followsService.followedByUser(user_id);
+  @Get('followedBy/:user_id')
+  async followedByUser(
+    @Param('user_id') user_id: Types.ObjectId,
+    @Res() res: Response,
+  ) {
+    // console.log(user_id);
+    // const id = Object.values(user_id);
+    // console.log(typeof id[0]);
+    const list = await this.followsService.followedByUser(user_id);
+    return res.status(HttpStatus.OK).json(list);
   }
 }

@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema as MongoSchema, ClientSession } from 'mongoose';
+import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { FollowDto } from './dto/followUser.dto';
 import { Follow } from './entities/follow.entity';
 
@@ -13,7 +13,8 @@ export class FollowRepository {
     @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
   ) {}
 
-  async followedUser(user_id: MongoSchema.Types.ObjectId) {
+  async followedUser(user_id: Types.ObjectId) {
+    console.log(user_id);
     const data = await this.followModel
       .find({ followed_user_id: user_id })
       .populate('user_id')
@@ -22,7 +23,7 @@ export class FollowRepository {
     return data;
   }
 
-  async followedByUser(user_id: MongoSchema.Types.ObjectId) {
+  async followedByUser(user_id: Types.ObjectId) {
     const data = await this.followModel
       .find({ user_id: user_id })
       .populate('user_id')
@@ -32,12 +33,14 @@ export class FollowRepository {
   }
 
   async followUser(followDto: FollowDto, session: ClientSession) {
+    console.log(followDto);
     const follow = new this.followModel({
       ...followDto,
     });
 
     try {
       await follow.save({ session });
+      return follow;
     } catch (error) {
       if (error.code === 11000) {
         throw new ConflictException('User already followed');

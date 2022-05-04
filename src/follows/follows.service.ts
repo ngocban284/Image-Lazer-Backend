@@ -3,7 +3,7 @@ https://docs.nestjs.com/providers#services
 */
 
 import { Injectable } from '@nestjs/common';
-import { ClientSession, Schema as MongoSchema } from 'mongoose';
+import { ClientSession, Schema as MongoSchema, Types } from 'mongoose';
 import { FollowDto } from './dto/followUser.dto';
 import { FollowRepository } from './follows.repository';
 
@@ -19,11 +19,11 @@ export class FollowsService {
     return await this.followRepository.unfollowUser(followDto, session);
   }
 
-  async followedUser(user_id: MongoSchema.Types.ObjectId) {
+  async followedUser(user_id: Types.ObjectId) {
     return await this.followRepository.followedUser(user_id);
   }
 
-  async followedByUser(user_id: MongoSchema.Types.ObjectId) {
+  async followedByUser(user_id: Types.ObjectId) {
     return await this.followRepository.followedByUser(user_id);
   }
 }

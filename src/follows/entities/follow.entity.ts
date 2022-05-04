@@ -1,13 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongoSchema } from 'mongoose';
+import { Document, Types, SchemaTypes } from 'mongoose';
+import { User } from '../../users/entities/user.entity';
 
-Schema({ timestamps: true });
+// Schema({ timestamps: true });
+// export class Follow extends Document {
+//   @Prop({ type: SchemaTypes.ObjectId, ref: User.name, required: true })
+//   user_id: Types.ObjectId;
+
+//   @Prop({ type: SchemaTypes.ObjectId, ref: User.name, required: true })
+//   followed_user_id: Types.ObjectId;
+// }
+
+@Schema({ timestamps: true })
 export class Follow extends Document {
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
-  user_id: MongoSchema.Types.ObjectId;
+  @Prop()
+  user_id: string;
 
-  @Prop({ type: MongoSchema.Types.ObjectId, ref: 'User', required: true })
-  followed_user_id: MongoSchema.Types.ObjectId;
+  @Prop()
+  followed_user_id: string;
 }
 
 export const FollowSchema = SchemaFactory.createForClass(Follow);
