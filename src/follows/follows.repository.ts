@@ -35,19 +35,25 @@ export class FollowRepository {
   async followUser(followDto: FollowDto, session: ClientSession) {
     const user_id = followDto.user_id;
     const followed_user_id = followDto.followed_user_id;
-    const follow = new this.followModel({
+
+    const followed = await this.followModel.findOne({
       user_id,
       followed_user_id,
     });
 
-    try {
-      await follow.save({ session });
-      return follow;
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException('User already followed');
+    if (followed) {
+      throw new ConflictException('You are already following this user');
+    } else {
+      try {
+        const follow = new this.followModel({
+          user_id,
+          followed_user_id,
+        });
+        await follow.save({ session });
+        return follow;
+      } catch {
+        throw new InternalServerErrorException();
       }
-      throw new InternalServerErrorException();
     }
   }
 
