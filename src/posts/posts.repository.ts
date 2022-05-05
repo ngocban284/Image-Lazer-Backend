@@ -10,6 +10,7 @@ import { Like } from 'src/likes/entities/like.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { GetPostDto } from './dto/getPost.dto';
 import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 
 export class PostRepository {
@@ -20,37 +21,138 @@ export class PostRepository {
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
   ) {}
 
-  async create(createPostDto: CreatePostDto) {
-    const { user_id, photo_url, description, website, tags } = createPostDto;
-    const post = new this.postModel({
-      user_id,
-      photo_url,
-      description,
-      website,
-      tags,
-    });
-
-    try {
-      await post.save();
-    } catch (error) {
-      if (error.code === 11000) {
-        throw new ConflictException('Post already exists');
-      }
-      throw new InternalServerErrorException();
-    }
+  async attachFollower(user_id: Types.ObjectId) {
+    let follow = await this.followModel
+      .find({ followed_user_id: user_id })
+      .populate('user_id')
+      .lean()
+      .exec();
+    return follow;
   }
 
-  async attachFollowers(_id: Types.ObjectId) {
-    let follower = await this.followModel
-      .find({
-        followed_user_id: _id,
-      })
+  async attachLikesComments(givenPost: any) {
+    if (!givenPost) {
+      return null;
+    }
+
+    let likes = await this.likeModel
+      .find({ post_id: givenPost._id })
       .populate('user_id')
       .lean()
       .exec();
 
-    return follower;
+    givenPost.likes = likes;
+
+    let comments: any = await this.commentModel
+      .find({ post_id: givenPost._id })
+      .populate('user_id')
+      .lean()
+      .exec();
+
+    for (let i = 0; i < comments.length; i++) {
+      let replies = await this.commentModel
+        .find({ parentComment_id: comments[i]._id })
+        .populate('user_id')
+        .lean()
+        .exec();
+
+      comments[i].replies = replies;
+    }
+
+    givenPost.comments = comments;
+
+    return givenPost;
   }
 
-  async attachLikes(post: Post) {}
+  async createPost(postDto: CreatePostDto, session: ClientSession) {
+    try {
+      let post = new this.postModel(postDto);
+      await post.save({ session: session });
+      return post;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getPost(getPost: GetPostDto) {
+    try {
+      let pageNumber = getPost.pageNumber || 1;
+      let limit = getPost.limit || 25;
+
+      const skip = (pageNumber - 1) * limit;
+
+      let posts: any = await this.postModel
+        .find({})
+        .populate('user_id')
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec();
+      for (let i = 0; i < posts.length; i++) {
+        posts[i] = await this.attachLikesComments(posts[i]);
+        posts[i].user_id.followers = await this.attachFollower(
+          posts[i].user_id._id,
+        );
+      }
+      return posts;
+    } catch {
+      throw new NotFoundException();
+    }
+  }
+
+  async getPostById(post_id: Types.ObjectId) {
+    try {
+      let post: any = await this.postModel
+        .findById(post_id)
+        .populate('user_id')
+        .lean()
+        .exec();
+
+      post = await this.attachLikesComments(post);
+      post.user_id.followers = await this.attachFollower(post.user_id._id);
+
+      return post;
+    } catch {
+      throw new NotFoundException();
+    }
+  }
+
+  async updatePost(
+    post_id: Types.ObjectId,
+    updatePostDto: UpdatePostDto,
+    session: ClientSession,
+  ) {
+    try {
+      let post: any = await this.postModel.findByIdAndUpdate(
+        post_id,
+        updatePostDto,
+        { new: true, session: session },
+      );
+
+      post = await this.attachLikesComments(post);
+
+      return post;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deletePost(post_id: Types.ObjectId, session: ClientSession) {
+    try {
+      await this.postModel.findByIdAndDelete(post_id, { session: session });
+      let post = await this.postModel.find({}).lean().exec();
+      return post;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async getPostByTag(tag: string) {
+    try {
+      let post = await this.postModel.find({ tags: tag }).lean().exec();
+      return post;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
 }
