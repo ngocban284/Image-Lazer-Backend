@@ -1,9 +1,9 @@
 import { IsOptional, IsString, IsNotEmpty } from 'class-validator';
-import { Schema as MongoSchema } from 'mongoose';
+import { Schema as MongoSchema, Types } from 'mongoose';
 
 export class CreatePostDto {
   @IsOptional()
-  user_id: MongoSchema.Types.ObjectId;
+  user_id: Types.ObjectId;
 
   @IsString()
   @IsNotEmpty()
