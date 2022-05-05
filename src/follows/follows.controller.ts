@@ -1,3 +1,4 @@
+import { JwtGuard } from './../users/guards/jwt.guard';
 /*
 https://docs.nestjs.com/controllers#controllers
 */
@@ -11,6 +12,7 @@ import {
   Post,
   Delete,
   Param,
+  UseGuards,
 } from '@nestjs/common';
 import { FollowsService } from './follows.service';
 import { FollowDto } from './dto/followUser.dto';
@@ -19,6 +21,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Response } from 'express';
 
 @Controller('follows')
+@UseGuards(JwtGuard)
 export class FollowsController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,

@@ -38,7 +38,7 @@ export class UsersController {
     return res.status(HttpStatus.OK).json(user);
   }
 
-  @Post()
+  @Post('/auth/signup')
   async createUser(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
@@ -53,6 +53,11 @@ export class UsersController {
     } finally {
       session.endSession();
     }
+  }
+
+  @Post('/auth/signin')
+  signIn(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.login(createUserDto);
   }
 
   @Patch('/:id')
