@@ -40,9 +40,6 @@ export class Comment extends Document {
 
   @Prop({ type: Types.ObjectId, ref: Comment.name, required: false })
   parentComment_id: Types.ObjectId;
-
-  @Prop({ type: String, required: false, enum: ['Post', 'Comment'] })
-  parentType: string;
 }
 
 export const CommentSchema = SchemaFactory.createForClass(Comment);
