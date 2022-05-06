@@ -4,9 +4,9 @@ https://docs.nestjs.com/providers#services
 
 import { Injectable } from '@nestjs/common';
 import { ClientSession, Schema as MongoSchema, Types } from 'mongoose';
-import { CommentRepository } from './comment.repository';
-import { CreateCommentDto } from './dto/createComment.dto';
+import { CommentRepository } from './comments.repository';
 import { GetCommentDto } from './dto/getComment.dto';
+import { CreateCommentDto } from './dto/createComment.dto';
 import { UpdateCommentDto } from './dto/updateComment.dto';
 
 @Injectable()
