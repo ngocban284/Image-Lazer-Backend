@@ -11,6 +11,7 @@ import {
   Patch,
   Delete,
   Res,
+  Body,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { GetPostDto } from './dto/getPost.dto';
@@ -28,13 +29,13 @@ export class PostsController {
   ) {}
 
   @Get()
-  async getPosts(getPost: GetPostDto, @Res() res: Response) {
+  async getPosts(@Body() getPost: GetPostDto, @Res() res: Response) {
     let posts = await this.postsService.getPosts(getPost);
     res.status(HttpStatus.OK).json(posts);
   }
 
   @Post()
-  async createPost(postDto: CreatePostDto, @Res() res: Response) {
+  async createPost(@Body() postDto: CreatePostDto, @Res() res: Response) {
     const session = await this.connection.startSession();
     session.startTransaction();
 
@@ -53,7 +54,7 @@ export class PostsController {
   @Patch('/:id')
   async updatePost(
     @Param('id') id: Types.ObjectId,
-    postDto: UpdatePostDto,
+    @Body() postDto: UpdatePostDto,
     @Res() res: Response,
   ) {
     const session = await this.connection.startSession();
@@ -70,7 +71,7 @@ export class PostsController {
     }
   }
 
-  @Delete('/:id')
+  @Delete('delete/:id')
   async deletePost(@Param('id') id: Types.ObjectId, @Res() res: Response) {
     const session = await this.connection.startSession();
     session.startTransaction();
@@ -96,7 +97,7 @@ export class PostsController {
   }
 
   @Get('/tags')
-  async getPostByTag(tags: string, @Res() res: Response) {
+  async getPostByTag(@Body() tags: string, @Res() res: Response) {
     const post = await this.postsService.getPostByTag(tags);
     res.status(HttpStatus.OK).json(post);
   }

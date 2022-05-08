@@ -15,11 +15,11 @@ import { CommentsModule } from 'src/comments/comments.module';
 
 @Module({
   imports: [
-    FollowsModule,
-    UsersModule,
-    // LikesModule,
-    // CommentsModule,
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
+    FollowsModule,
+    // UsersModule,
+    LikesModule,
+    CommentsModule,
   ],
   controllers: [PostsController],
   providers: [PostsService, PostRepository],

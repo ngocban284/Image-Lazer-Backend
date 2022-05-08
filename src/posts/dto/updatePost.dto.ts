@@ -11,6 +11,5 @@ export class UpdatePostDto {
   website: string;
 
   @IsString()
-  @IsNotEmpty()
   tags: string;
 }

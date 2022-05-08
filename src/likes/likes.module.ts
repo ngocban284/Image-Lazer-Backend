@@ -15,12 +15,12 @@ import { CommentsModule } from 'src/comments/comments.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Like.name, schema: LikeSchema }]),
-    UsersModule,
-    PostsModule,
-    CommentsModule,
+    // UsersModule,
+    // PostsModule,
+    // CommentsModule,
   ],
   controllers: [LikesController],
   providers: [LikesService, LikeRepository],
-  exports: [LikesService, LikeRepository],
+  exports: [LikesService, LikeRepository, MongooseModule],
 })
 export class LikesModule {}

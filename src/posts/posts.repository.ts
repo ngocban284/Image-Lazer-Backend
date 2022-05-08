@@ -22,8 +22,10 @@ export class PostRepository {
   ) {}
 
   async attachFollower(user_id: Types.ObjectId) {
+    // console.log(user_id);
+    const parserId = user_id.toString();
     let follow = await this.followModel
-      .find({ followed_user_id: user_id })
+      .find({ followed_user_id: parserId })
       .populate('user_id')
       .lean()
       .exec();
@@ -36,7 +38,7 @@ export class PostRepository {
     }
 
     let likes = await this.likeModel
-      .find({ post_id: givenPost._id })
+      .find({ post_id: givenPost._id + '' })
       .populate('user_id')
       .lean()
       .exec();
@@ -44,14 +46,14 @@ export class PostRepository {
     givenPost.likes = likes;
 
     let comments: any = await this.commentModel
-      .find({ post_id: givenPost._id })
+      .find({ post_id: givenPost._id + '' })
       .populate('user_id')
       .lean()
       .exec();
 
     for (let i = 0; i < comments.length; i++) {
       let replies = await this.commentModel
-        .find({ parentComment_id: comments[i]._id })
+        .find({ parentComment_id: comments[i]._id + '' })
         .populate('user_id')
         .lean()
         .exec();
@@ -109,6 +111,7 @@ export class PostRepository {
         .exec();
 
       post = await this.attachLikesComments(post);
+      // console.log(post.user_id._id + '', typeof post.user_id._id + '');
       post.user_id.followers = await this.attachFollower(post.user_id._id);
 
       return post;
@@ -149,7 +152,10 @@ export class PostRepository {
 
   async getPostByTag(tag: string) {
     try {
-      let post = await this.postModel.find({ tags: tag }).lean().exec();
+      let post = await this.postModel
+        .find({ tags: { $regex: tag, $options: '$i' } })
+        .lean()
+        .exec();
       return post;
     } catch {
       throw new InternalServerErrorException();

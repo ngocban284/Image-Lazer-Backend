@@ -14,11 +14,9 @@ import { PostsModule } from 'src/posts/posts.module';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Comment.name, schema: CommentSchema }]),
-    UsersModule,
-    PostsModule,
   ],
   controllers: [CommentsController],
   providers: [CommentsService, CommentRepository],
-  exports: [CommentsService, CommentRepository],
+  exports: [CommentsService, CommentRepository, MongooseModule],
 })
 export class CommentsModule {}
