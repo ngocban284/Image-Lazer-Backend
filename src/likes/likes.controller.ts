@@ -18,14 +18,14 @@ import { LikesService } from './likes.service';
 import { CreateLikeDto } from './dto/like.dto';
 import { GetLikeDto } from './dto/getLike.dto';
 
-@Controller()
+@Controller('likes')
 export class LikesController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private likesService: LikesService,
   ) {}
 
-  @Post('/likes')
+  @Post()
   async createLike(@Body() createLikeDto: CreateLikeDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
@@ -42,7 +42,7 @@ export class LikesController {
     }
   }
 
-  @Get('/likes')
+  @Get()
   async getLikes(@Body() getLikeDto: GetLikeDto, @Res() res: Response) {
     const likes = await this.likesService.getLikes(getLikeDto);
     return res.status(HttpStatus.OK).json(likes);

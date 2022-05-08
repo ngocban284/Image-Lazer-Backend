@@ -9,6 +9,6 @@ export class CreateLikeDto {
   @IsOptional()
   post_id: Types.ObjectId;
 
-  @IsString()
+  @IsOptional()
   parentComment_id: Types.ObjectId;
 }
