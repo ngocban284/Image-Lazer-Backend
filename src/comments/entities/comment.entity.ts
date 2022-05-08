@@ -32,7 +32,7 @@ export class Comment extends Document {
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   user_id: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: Post.name, required: true })
+  @Prop({ type: Types.ObjectId, ref: Post.name, required: false })
   post_id: Types.ObjectId;
 
   @Prop({ required: true })

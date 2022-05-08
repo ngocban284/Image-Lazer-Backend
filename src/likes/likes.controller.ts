@@ -29,6 +29,7 @@ export class LikesController {
   async createLike(@Body() createLikeDto: CreateLikeDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
+    console.log(createLikeDto);
 
     try {
       const like = await this.likesService.createLike(createLikeDto, session);
