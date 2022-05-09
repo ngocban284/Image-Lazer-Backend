@@ -23,6 +23,6 @@ import { CommentsModule } from 'src/comments/comments.module';
   ],
   controllers: [PostsController],
   providers: [PostsService, PostRepository],
-  exports: [PostsService, PostRepository],
+  exports: [PostsService, PostRepository, MongooseModule],
 })
 export class PostsModule {}
