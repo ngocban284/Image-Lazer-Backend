@@ -63,23 +63,13 @@ export class SavePostRepository {
     }
   }
 
-  async getSavePostById(post_id: Types.ObjectId) {
+  async getSavePostById(savepost_id: Types.ObjectId) {
     try {
-      let savePost = await (
-        await this.savePostModel.findById({ _id: post_id }).populate('user_id')
-      ).populate('post_id');
-      return savePost;
-    } catch (error) {
-      throw new InternalServerErrorException();
-    }
-  }
-
-  async deleteSavePost(post_id: Types.ObjectId, session: ClientSession) {
-    try {
-      let savePost = await this.savePostModel.findOneAndDelete(
-        { post_id: post_id },
-        { session: session },
-      );
+      let savePost = await this.savePostModel
+        .findById({ _id: savepost_id })
+        .populate('user_id')
+        .populate('post_id');
+      console.log(savePost);
       return savePost;
     } catch (error) {
       throw new InternalServerErrorException();

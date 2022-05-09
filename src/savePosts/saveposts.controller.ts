@@ -41,7 +41,7 @@ export class SavePostController {
     }
   }
 
-  @Get('/:user_id')
+  @Get('/users/:user_id')
   async getSavePost(
     @Param('user_id') user_id: Types.ObjectId,
     @Res() res: Response,
@@ -50,35 +50,15 @@ export class SavePostController {
     return res.status(HttpStatus.OK).json(savePost);
   }
 
-  @Get('/:post_id')
+  @Get('/:savepost_id')
   async getSavePostById(
-    @Param('post_id') post_id: Types.ObjectId,
+    @Param('savepost_id') savepost_id: Types.ObjectId,
     @Res() res: Response,
   ) {
-    const savePost = await this.savePostService.getSavePostById(post_id);
+    // console.log(savepost_id);
+    // return res.status(HttpStatus.OK).json(savepost_id);
+
+    const savePost = await this.savePostService.getSavePostById(savepost_id);
     return res.status(HttpStatus.OK).json(savePost);
-  }
-
-  @Delete('/:post_id')
-  async deleteSavePost(
-    @Param('post_id') post_id: Types.ObjectId,
-    @Res() res: Response,
-  ) {
-    const session = await this.mongoConnection.startSession();
-    session.startTransaction();
-
-    try {
-      const savePost = await this.savePostService.deleteSavePost(
-        post_id,
-        session,
-      );
-      await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(savePost);
-    } catch {
-      await session.abortTransaction();
-      throw new Error();
-    } finally {
-      session.endSession();
-    }
   }
 }

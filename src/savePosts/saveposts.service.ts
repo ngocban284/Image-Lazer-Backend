@@ -19,11 +19,7 @@ export class SavePostService {
     return await this.savePostRepository.getSavePost(user_id);
   }
 
-  async getSavePostById(post_id: Types.ObjectId) {
-    return await this.savePostRepository.getSavePostById(post_id);
-  }
-
-  async deleteSavePost(post_id: Types.ObjectId, session: ClientSession) {
-    return await this.savePostRepository.deleteSavePost(post_id, session);
+  async getSavePostById(savepost_id: Types.ObjectId) {
+    return await this.savePostRepository.getSavePostById(savepost_id);
   }
 }
