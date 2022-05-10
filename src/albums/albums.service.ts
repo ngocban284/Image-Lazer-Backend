@@ -7,6 +7,7 @@ import { ClientSession, Schema as MongoSchema, Types } from 'mongoose';
 import { AlbumRepository } from './albums.repository';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
+import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
 
 @Injectable()
 export class AlbumsService {
@@ -36,7 +37,11 @@ export class AlbumsService {
     );
   }
 
-  async deleteAlbum(album_id: Types.ObjectId, session: ClientSession) {
-    return await this.albumRepository.deleteAlbum(album_id, session);
+  async deleteAlbum(
+    post_id: Types.ObjectId,
+    deletePost: DeletePostOfAlbumDto,
+    session: ClientSession,
+  ) {
+    return await this.albumRepository.deleteAlbum(post_id, deletePost, session);
   }
 }

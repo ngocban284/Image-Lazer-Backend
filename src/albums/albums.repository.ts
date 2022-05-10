@@ -9,6 +9,7 @@ import { Album } from './entities/album.entity';
 import { SavePost } from 'src/savePosts/entities/savepost.entity';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
+import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
 
 export class AlbumRepository {
   constructor(
@@ -32,7 +33,11 @@ export class AlbumRepository {
           .populate('post_id');
 
         let savepost = await this.savePostModel.findOne({
-          $and: [{ user_id: albumDto.user_id }, { post_id: albumDto.post_id }],
+          $and: [
+            { user_id: albumDto.user_id },
+            { post_id: albumDto.post_id },
+            { album_id: album._id },
+          ],
         });
         if (savepost) {
           return updateAlbum;
@@ -40,6 +45,7 @@ export class AlbumRepository {
           savepost = new this.savePostModel({
             user_id: albumDto.user_id,
             post_id: albumDto.post_id,
+            album_id: album._id,
           });
           await savepost.save({ session: session });
           return { updateAlbum };
@@ -61,7 +67,11 @@ export class AlbumRepository {
           .populate('post_id');
 
         let savepost = await this.savePostModel.findOne({
-          $and: [{ user_id: albumDto.user_id }, { post_id: albumDto.post_id }],
+          $and: [
+            { user_id: albumDto.user_id },
+            { post_id: albumDto.post_id },
+            { album_id: newAlbum._id.toString() },
+          ],
         });
         if (savepost) {
           return newAlbum;
@@ -69,9 +79,10 @@ export class AlbumRepository {
           savepost = new this.savePostModel({
             user_id: albumDto.user_id,
             post_id: albumDto.post_id,
+            album_id: newAlbum._id.toString(),
           });
           await savepost.save({ session: session });
-          return { newAlbum };
+          return newAlbum;
         }
       }
     } catch (error) {
@@ -117,18 +128,23 @@ export class AlbumRepository {
     }
   }
 
-  async deleteAlbum(album_id: Types.ObjectId, session: ClientSession) {
+  async deleteAlbum(
+    album_id: Types.ObjectId,
+    deletePost: DeletePostOfAlbumDto,
+    session: ClientSession,
+  ) {
     try {
-      let album = await this.albumModel.findByIdAndDelete(album_id, {
-        session,
-      });
-      const user_id = album.user_id;
-      const post_id = album.post_id;
-      let savePost = await this.savePostModel.findOneAndDelete({
-        $and: [{ user_id: user_id, post_id: post_id }],
-      });
-      return album;
-    } catch (error) {
+      let album = await this.albumModel.findByIdAndUpdate(
+        {
+          _id: album_id,
+        },
+        { $pull: { post_id: deletePost.post_id } },
+        { new: true, session: session },
+      );
+      let newAlbum = await this.albumModel.findById({ _id: album._id });
+      await this.savePostModel.findOneAndDelete({ album_id: album_id });
+      return newAlbum;
+    } catch {
       throw new InternalServerErrorException();
     }
   }

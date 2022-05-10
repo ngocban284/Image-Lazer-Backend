@@ -15,6 +15,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { AlbumsService } from './albums.service';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
+import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
 
 @Controller('albums')
 export class AlbumsController {
@@ -69,6 +70,31 @@ export class AlbumsController {
       const album = await this.albumService.updateAlbum(
         album_id,
         albumDto,
+        session,
+      );
+      await session.commitTransaction();
+      return res.status(HttpStatus.OK).json(album);
+    } catch {
+      await session.abortTransaction();
+      throw new Error();
+    } finally {
+      session.endSession();
+    }
+  }
+
+  @Delete('/:album_id')
+  async deleteAlbum(
+    @Param('album_id') album_id: Types.ObjectId,
+    @Body() deletePost: DeletePostOfAlbumDto,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+
+    try {
+      const album = await this.albumService.deleteAlbum(
+        album_id,
+        deletePost,
         session,
       );
       await session.commitTransaction();

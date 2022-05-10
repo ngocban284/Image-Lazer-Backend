@@ -54,9 +54,9 @@ export class SavePostRepository {
           },
         });
 
-      savePosts = savePosts.map((savePost) => {
-        return savePost.post_id;
-      });
+      // savePosts = savePosts.map((savePost) => {
+      //   return savePost.post_id;
+      // });
       return savePosts;
     } catch (error) {
       throw new InternalServerErrorException();
