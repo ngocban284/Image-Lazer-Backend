@@ -17,6 +17,6 @@ import { SavePostService } from './saveposts.service';
   ],
   controllers: [SavePostController],
   providers: [SavePostService, SavePostRepository],
-  exports: [SavePostService, SavePostRepository],
+  exports: [SavePostService, SavePostRepository, MongooseModule],
 })
 export class SavePostsModule {}

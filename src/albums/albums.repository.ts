@@ -18,19 +18,61 @@ export class AlbumRepository {
 
   async createAlbum(albumDto: CreateAlbumDto, session: ClientSession) {
     try {
-      let album = new this.albumModel(albumDto);
-      await album.save({ session: session });
-      let savepost: any = await this.savePostModel.findOne({
-        $and: [{ user_id: albumDto.user_id }, { post_id: albumDto.post_id }],
+      let album = await this.albumModel.findOne({
+        $and: [{ user_id: albumDto.user_id }, { name: albumDto.name }],
       });
-      if (savepost) {
-        return album;
-      } else {
-        savepost = new this.savePostModel({
-          user_id: albumDto.user_id,
-          post_id: albumDto.post_id,
+
+      if (album) {
+        let updateAlbum = await this.albumModel.findByIdAndUpdate(
+          { _id: album._id },
+          { $push: { post_id: albumDto.post_id } },
+        );
+        updateAlbum = await this.albumModel
+          .findById({ _id: updateAlbum._id })
+          .populate('post_id');
+
+        let savepost = await this.savePostModel.findOne({
+          $and: [{ user_id: albumDto.user_id }, { post_id: albumDto.post_id }],
         });
-        return { album };
+        if (savepost) {
+          return updateAlbum;
+        } else {
+          savepost = new this.savePostModel({
+            user_id: albumDto.user_id,
+            post_id: albumDto.post_id,
+          });
+          await savepost.save({ session: session });
+          return { updateAlbum };
+        }
+      } else {
+        let newAlbum = await this.albumModel.create({
+          user_id: albumDto.user_id,
+          name: albumDto.name,
+          description: albumDto.description,
+        });
+        let updateAlbum = await this.albumModel.findByIdAndUpdate(
+          { _id: newAlbum._id },
+          { $push: { post_id: albumDto.post_id } },
+        );
+        await updateAlbum.save({ session });
+
+        newAlbum = await this.albumModel
+          .findById({ _id: updateAlbum._id })
+          .populate('post_id');
+
+        let savepost = await this.savePostModel.findOne({
+          $and: [{ user_id: albumDto.user_id }, { post_id: albumDto.post_id }],
+        });
+        if (savepost) {
+          return newAlbum;
+        } else {
+          savepost = new this.savePostModel({
+            user_id: albumDto.user_id,
+            post_id: albumDto.post_id,
+          });
+          await savepost.save({ session: session });
+          return { newAlbum };
+        }
       }
     } catch (error) {
       throw new InternalServerErrorException();

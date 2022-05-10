@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Comment } from './entities/comment.entity';
 import { Types, ClientSession, Model } from 'mongoose';
+import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/createComment.dto';
 import { GetCommentDto } from './dto/getComment.dto';
 import { UpdateCommentDto } from './dto/updateComment.dto';

@@ -27,6 +27,7 @@ export class AlbumsController {
   async createAlbum(@Body() albumDto: CreateAlbumDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
+    // console.log(albumDto);
 
     try {
       const album = await this.albumService.createAlbum(albumDto, session);
@@ -48,7 +49,7 @@ export class AlbumsController {
 
   @Get('/users/:user_id')
   async getAlbumById(
-    @Param('album_id') user_id: Types.ObjectId,
+    @Param('user_id') user_id: Types.ObjectId,
     @Res() res: Response,
   ) {
     const album = await this.albumService.getAlbumByUser(user_id);
