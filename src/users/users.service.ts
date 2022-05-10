@@ -1,12 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ClientSession, Schema as MongoSchema } from 'mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { JwtPayload } from './jwt-payload.interface';
+import { LogInUserDto } from './dto/loginUser.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private jwtService: JwtService,
+  ) {}
 
   async getAllUsers() {
     return await this.userRepository.getAllUsers();
@@ -22,6 +29,19 @@ export class UsersService {
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
     return await this.userRepository.createUser(createUserDto, session);
+  }
+
+  async login(logInUserDto: LogInUserDto) {
+    const { email, password } = logInUserDto;
+    const user = await this.getUserByEmail(email);
+
+    if (user && (await bcrypt.compare(password, user.password))) {
+      const payload: JwtPayload = { email, userId: user._id };
+      const accessToken = await this.jwtService.sign(payload);
+      return { accessToken };
+    } else {
+      throw new UnauthorizedException('Please check your login credentials');
+    }
   }
 
   async updateUser(

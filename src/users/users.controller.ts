@@ -8,6 +8,7 @@ import {
   Get,
   Post,
   Patch,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection } from 'mongoose';
@@ -15,6 +16,8 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { LogInUserDto } from './dto/loginUser.dto';
+import { JwtGuard } from './guards/jwt.guard';
 
 @Controller('users')
 export class UsersController {
@@ -24,12 +27,14 @@ export class UsersController {
   ) {}
 
   @Get()
+  @UseGuards(JwtGuard)
   async getAllUsers(@Res() res: Response) {
     const users = await this.usersService.getAllUsers();
     return res.status(HttpStatus.OK).json(users);
   }
 
   @Get('/:id')
+  @UseGuards(JwtGuard)
   async getUserById(
     @Param('id') id: MongoSchema.Types.ObjectId,
     @Res() res: Response,
@@ -38,7 +43,7 @@ export class UsersController {
     return res.status(HttpStatus.OK).json(user);
   }
 
-  @Post()
+  @Post('/auth/signup')
   async createUser(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
@@ -55,7 +60,13 @@ export class UsersController {
     }
   }
 
+  @Post('/auth/signin')
+  signIn(@Body() logInUserDto: LogInUserDto) {
+    return this.usersService.login(logInUserDto);
+  }
+
   @Patch('/:id')
+  @UseGuards(JwtGuard)
   async updateUser(
     @Param('id') id: MongoSchema.Types.ObjectId,
     @Body() updateUserDto: UpdateUserDto,
@@ -80,6 +91,7 @@ export class UsersController {
   }
 
   @Delete('/:id')
+  @UseGuards(JwtGuard)
   async deleteUser(
     @Param('id') id: MongoSchema.Types.ObjectId,
     @Res() res: Response,
