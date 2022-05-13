@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
 import { FriendInvitationService } from './friend-invitation.service';
-import { FriendInvitationController } from './friend-invitation.controller';
+import { FriendInvitationGateway } from './friend-invitation.gateway';
 
 @Module({
-  providers: [FriendInvitationService],
-  controllers: [FriendInvitationController]
+  providers: [FriendInvitationGateway, FriendInvitationService],
 })
 export class FriendInvitationModule {}
