@@ -1,0 +1,18 @@
+//follow user
+POST http://localhost:3000/follows
+Content-Type:application/json
+
+{
+  "user_id": "62721e77833412e3cc363958",
+  "followed_user_id": "62721e92f932e055d4d9c09e"
+}
+
+
+###
+
+GET http://localhost:3000/follows/followed/62721e77833412e3cc363958
+Content-Type:application/json
+
+# {
+#     "user_id": "62721e77833412e3cc363958"
+# }

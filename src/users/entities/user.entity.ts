@@ -2,15 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 
-export type UserDocument = Document & User;
-
 @Schema({ timestamps: true })
-export class User {
+export class User extends Document {
   @Prop({ required: true, unique: true })
   userName: string;
 
   @Prop({ required: true })
-  fullname: string;
+  fullName: string;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -25,7 +23,7 @@ export class User {
   profile_url: string;
 
   @Prop({
-    required: true,
+    required: false,
     default:
       'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
   })
@@ -33,11 +31,17 @@ export class User {
 
   @Prop({ required: false, default: 0 })
   follow_count: number;
+
+  @Prop({ required: false })
+  refreshToken: string;
+
+  @Prop({ required: false })
+  refreshTokenExpiry: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.pre<UserDocument>('save', function (next) {
+UserSchema.pre<User>('save', function (next) {
   if (!this.isModified('password')) {
     return next();
   }
