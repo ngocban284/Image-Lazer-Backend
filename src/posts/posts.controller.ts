@@ -33,7 +33,7 @@ export class PostsController {
 
   @Get()
   async getPosts(@Body() getPost: GetPostDto, @Res() res: Response) {
-    const posts = await this.postsService.getPosts(getPost);
+    let posts = await this.postsService.getPosts(getPost);
     res.status(HttpStatus.OK).json(posts);
   }
 

@@ -23,7 +23,7 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      const album = await this.albumModel.findOne({
+      let album = await this.albumModel.findOne({
         $and: [{ user_id: user_id }, { name: albumDto.name }],
       });
 
@@ -60,7 +60,7 @@ export class AlbumRepository {
           name: albumDto.name,
           description: albumDto.description,
         });
-        const updateAlbum = await this.albumModel.findByIdAndUpdate(
+        let updateAlbum = await this.albumModel.findByIdAndUpdate(
           { _id: newAlbum._id },
           { $push: { post_id: albumDto.post_id } },
         );
@@ -96,7 +96,7 @@ export class AlbumRepository {
 
   async getAlbum() {
     try {
-      const albums = await this.albumModel.find();
+      let albums = await this.albumModel.find();
       return albums;
     } catch (error) {
       throw new NotFoundException();
@@ -105,7 +105,7 @@ export class AlbumRepository {
 
   async getAlbumByUser(user_id: Types.ObjectId) {
     try {
-      const albums = await this.albumModel
+      let albums = await this.albumModel
         .find({ user_id })
         .populate('post_id')
         .populate('user_id');
@@ -159,7 +159,7 @@ export class AlbumRepository {
           { $pull: { post_id: deletePost.post_id } },
           { new: true, session: session },
         );
-        const newAlbum = await this.albumModel.findById({ _id: album._id });
+        let newAlbum = await this.albumModel.findById({ _id: album._id });
         await this.savePostModel.findOneAndDelete({ album_id: album_id });
         return newAlbum;
       } else {
