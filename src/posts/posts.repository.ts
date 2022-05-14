@@ -2,6 +2,7 @@ import {
   ConflictException,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Post } from './entities/post.entity';
@@ -66,9 +67,13 @@ export class PostRepository {
     return givenPost;
   }
 
-  async createPost(postDto: CreatePostDto, session: ClientSession) {
+  async createPost(
+    user_id: Types.ObjectId,
+    postDto: CreatePostDto,
+    session: ClientSession,
+  ) {
     try {
-      let post = new this.postModel(postDto);
+      let post = new this.postModel({ ...postDto, user_id: user_id });
       await post.save({ session: session });
       return post;
     } catch {
@@ -121,30 +126,50 @@ export class PostRepository {
   }
 
   async updatePost(
+    user_id: Types.ObjectId,
     post_id: Types.ObjectId,
     updatePostDto: UpdatePostDto,
     session: ClientSession,
   ) {
     try {
-      let post: any = await this.postModel.findByIdAndUpdate(
+      let post = await this.postModel.findOne({
+        $and: [{ _id: post_id }, { user_id: user_id }],
+      });
+      if (!post) {
+        throw new UnauthorizedException();
+      }
+      await this.postModel.findByIdAndUpdate(post_id, updatePostDto, {
+        session: session,
+      });
+      let updatePost: any = await this.postModel.findByIdAndUpdate(
         post_id,
         updatePostDto,
         { new: true, session: session },
       );
 
-      post = await this.attachLikesComments(post);
+      updatePost = await this.attachLikesComments(updatePost);
 
-      return post;
+      return updatePost;
     } catch {
       throw new InternalServerErrorException();
     }
   }
 
-  async deletePost(post_id: Types.ObjectId, session: ClientSession) {
+  async deletePost(
+    user_id: Types.ObjectId,
+    post_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
     try {
+      let post = await this.postModel.findOne({
+        $and: [{ _id: post_id }, { user_id: user_id }],
+      });
+      if (!post) {
+        throw new UnauthorizedException();
+      }
       await this.postModel.findByIdAndDelete(post_id, { session: session });
-      let post = await this.postModel.find({}).lean().exec();
-      return post;
+      let postDeleted = await this.postModel.find({}).lean().exec();
+      return postDeleted;
     } catch {
       throw new InternalServerErrorException();
     }

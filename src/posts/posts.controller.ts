@@ -11,7 +11,9 @@ import {
   Patch,
   Delete,
   Res,
+  Req,
   Body,
+  UseGuards,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { GetPostDto } from './dto/getPost.dto';
@@ -20,6 +22,7 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 import { Response } from 'express';
 import { Types, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
+import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
 
 @Controller('posts')
 export class PostsController {
@@ -35,12 +38,21 @@ export class PostsController {
   }
 
   @Post()
-  async createPost(@Body() postDto: CreatePostDto, @Res() res: Response) {
+  @UseGuards(JwtGuard)
+  async createPost(
+    @Body() postDto: CreatePostDto,
+    @Req() request,
+    @Res() res: Response,
+  ) {
     const session = await this.connection.startSession();
     session.startTransaction();
 
     try {
-      const post = await this.postsService.createPost(postDto, session);
+      const post = await this.postsService.createPost(
+        request.user._id,
+        postDto,
+        session,
+      );
       await session.commitTransaction();
       res.status(HttpStatus.OK).json(post);
     } catch {
@@ -52,15 +64,22 @@ export class PostsController {
   }
 
   @Patch('/:id')
+  @UseGuards(JwtGuard)
   async updatePost(
     @Param('id') id: Types.ObjectId,
     @Body() postDto: UpdatePostDto,
+    @Req() request,
     @Res() res: Response,
   ) {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
-      const post = await this.postsService.updatePost(id, postDto, session);
+      const post = await this.postsService.updatePost(
+        request.user._id,
+        id,
+        postDto,
+        session,
+      );
       await session.commitTransaction();
       res.status(HttpStatus.OK).json(post);
     } catch {
@@ -72,11 +91,20 @@ export class PostsController {
   }
 
   @Delete('delete/:id')
-  async deletePost(@Param('id') id: Types.ObjectId, @Res() res: Response) {
+  @UseGuards(JwtGuard)
+  async deletePost(
+    @Param('id') id: Types.ObjectId,
+    @Req() request,
+    @Res() res: Response,
+  ) {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
-      const post = await this.postsService.deletePost(id, session);
+      const post = await this.postsService.deletePost(
+        request.user._id,
+        id,
+        session,
+      );
 
       await session.commitTransaction();
 

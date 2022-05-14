@@ -31,6 +31,12 @@ export class User extends Document {
 
   @Prop({ required: false, default: 0 })
   follow_count: number;
+
+  @Prop({ required: false })
+  refreshToken: string;
+
+  @Prop({ required: false })
+  refreshTokenExpiry: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

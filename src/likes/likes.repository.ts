@@ -14,10 +14,14 @@ export class LikeRepository {
     @InjectModel(Like.name) private readonly likeModel: Model<Like>,
   ) {}
 
-  async createLike(likeDto: CreateLikeDto, session: ClientSession) {
+  async createLike(
+    user_id: Types.ObjectId,
+    likeDto: CreateLikeDto,
+    session: ClientSession,
+  ) {
     if (likeDto.post_id) {
       let like = await this.likeModel.findOne({
-        $and: [{ post_id: likeDto.post_id }, { user_id: likeDto.user_id }],
+        $and: [{ post_id: likeDto.post_id }, { user_id: user_id }],
       });
 
       if (like) {
@@ -26,7 +30,7 @@ export class LikeRepository {
         });
         return { likeDelete: false };
       } else {
-        let like = new this.likeModel(likeDto);
+        let like = new this.likeModel(likeDto, user_id);
         await like.save({ session: session });
         return { like: true };
       }
@@ -34,7 +38,7 @@ export class LikeRepository {
       let like = await this.likeModel.findOne({
         $and: [
           { parentComment_id: likeDto.parentComment_id },
-          { user_id: likeDto.user_id },
+          { user_id: user_id },
         ],
       });
 
@@ -44,7 +48,7 @@ export class LikeRepository {
         });
         return { likeDelete: false };
       } else {
-        let like = new this.likeModel(likeDto);
+        let like = new this.likeModel(likeDto, user_id);
         await like.save({ session: session });
         return { like: true };
       }

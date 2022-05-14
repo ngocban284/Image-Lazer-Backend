@@ -13,8 +13,16 @@ import { UpdateCommentDto } from './dto/updateComment.dto';
 export class CommentsService {
   constructor(private readonly commentRepository: CommentRepository) {}
 
-  async createComment(commentDto: CreateCommentDto, session: ClientSession) {
-    return await this.commentRepository.createComment(commentDto, session);
+  async createComment(
+    user_id: Types.ObjectId,
+    commentDto: CreateCommentDto,
+    session: ClientSession,
+  ) {
+    return await this.commentRepository.createComment(
+      user_id,
+      commentDto,
+      session,
+    );
   }
 
   async getComments(getComment: GetCommentDto) {
@@ -22,18 +30,28 @@ export class CommentsService {
   }
 
   async updateComment(
+    user_id: Types.ObjectId,
     comment_id: Types.ObjectId,
     updateCommentDto: UpdateCommentDto,
     session: ClientSession,
   ) {
     return await this.commentRepository.updateComment(
+      user_id,
       comment_id,
       updateCommentDto,
       session,
     );
   }
 
-  async deleteComment(comment_id: Types.ObjectId, session: ClientSession) {
-    return await this.commentRepository.deleteComment(comment_id, session);
+  async deleteComment(
+    user_id: Types.ObjectId,
+    comment_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
+    return await this.commentRepository.deleteComment(
+      user_id,
+      comment_id,
+      session,
+    );
   }
 }

@@ -17,10 +17,14 @@ export class AlbumRepository {
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
   ) {}
 
-  async createAlbum(albumDto: CreateAlbumDto, session: ClientSession) {
+  async createAlbum(
+    user_id: Types.ObjectId,
+    albumDto: CreateAlbumDto,
+    session: ClientSession,
+  ) {
     try {
       let album = await this.albumModel.findOne({
-        $and: [{ user_id: albumDto.user_id }, { name: albumDto.name }],
+        $and: [{ user_id: user_id }, { name: albumDto.name }],
       });
 
       if (album) {
@@ -34,7 +38,7 @@ export class AlbumRepository {
 
         let savepost = await this.savePostModel.findOne({
           $and: [
-            { user_id: albumDto.user_id },
+            { user_id: user_id },
             { post_id: albumDto.post_id },
             { album_id: album._id },
           ],
@@ -43,7 +47,7 @@ export class AlbumRepository {
           return updateAlbum;
         } else {
           savepost = new this.savePostModel({
-            user_id: albumDto.user_id,
+            user_id: user_id,
             post_id: albumDto.post_id,
             album_id: album._id,
           });
@@ -52,7 +56,7 @@ export class AlbumRepository {
         }
       } else {
         let newAlbum = await this.albumModel.create({
-          user_id: albumDto.user_id,
+          user_id: user_id,
           name: albumDto.name,
           description: albumDto.description,
         });
@@ -68,7 +72,7 @@ export class AlbumRepository {
 
         let savepost = await this.savePostModel.findOne({
           $and: [
-            { user_id: albumDto.user_id },
+            { user_id: user_id },
             { post_id: albumDto.post_id },
             { album_id: newAlbum._id.toString() },
           ],
@@ -77,7 +81,7 @@ export class AlbumRepository {
           return newAlbum;
         } else {
           savepost = new this.savePostModel({
-            user_id: albumDto.user_id,
+            user_id: user_id,
             post_id: albumDto.post_id,
             album_id: newAlbum._id.toString(),
           });
@@ -112,38 +116,55 @@ export class AlbumRepository {
   }
 
   async updateAlbum(
+    user_id: Types.ObjectId,
     album_id: Types.ObjectId,
     updateAlbumDto: UpdateAlbumDto,
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findByIdAndUpdate(
-        album_id,
-        updateAlbumDto,
-        { new: true, session: session },
-      );
-      return album;
+      let album = await this.albumModel.findOne({
+        $and: [{ user_id: user_id }, { _id: album_id }],
+      });
+      if (album) {
+        album = await this.albumModel.findByIdAndUpdate(
+          album_id,
+          updateAlbumDto,
+          { new: true, session: session },
+        );
+        return album;
+      } else {
+        throw new NotFoundException();
+      }
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
   async deleteAlbum(
+    user_id: Types.ObjectId,
     album_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findByIdAndUpdate(
-        {
-          _id: album_id,
-        },
-        { $pull: { post_id: deletePost.post_id } },
-        { new: true, session: session },
-      );
-      let newAlbum = await this.albumModel.findById({ _id: album._id });
-      await this.savePostModel.findOneAndDelete({ album_id: album_id });
-      return newAlbum;
+      let album = await this.albumModel.findOne({
+        $and: [{ user_id: user_id }, { _id: album_id }],
+      });
+
+      if (album) {
+        album = await this.albumModel.findByIdAndUpdate(
+          {
+            _id: album_id,
+          },
+          { $pull: { post_id: deletePost.post_id } },
+          { new: true, session: session },
+        );
+        let newAlbum = await this.albumModel.findById({ _id: album._id });
+        await this.savePostModel.findOneAndDelete({ album_id: album_id });
+        return newAlbum;
+      } else {
+        throw new NotFoundException();
+      }
     } catch {
       throw new InternalServerErrorException();
     }

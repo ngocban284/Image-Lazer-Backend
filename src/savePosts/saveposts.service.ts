@@ -11,8 +11,16 @@ import { SavePostDto } from './dto/savepost.dto';
 export class SavePostService {
   constructor(private readonly savePostRepository: SavePostRepository) {}
 
-  async createSavePost(savePostDto: SavePostDto, session: ClientSession) {
-    return await this.savePostRepository.createSavePost(savePostDto, session);
+  async createSavePost(
+    user_id: Types.ObjectId,
+    savePostDto: SavePostDto,
+    session: ClientSession,
+  ) {
+    return await this.savePostRepository.createSavePost(
+      user_id,
+      savePostDto,
+      session,
+    );
   }
 
   async getSavePost(user_id: Types.ObjectId) {

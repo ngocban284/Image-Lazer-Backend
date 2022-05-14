@@ -1,4 +1,4 @@
-import { JwtGuard } from './../users/guards/jwt.guard';
+import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
 /*
 https://docs.nestjs.com/controllers#controllers
 */
@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Body,
   Res,
+  Req,
   Get,
   Post,
   Delete,
@@ -21,7 +22,6 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { Response } from 'express';
 
 @Controller('follows')
-@UseGuards(JwtGuard)
 export class FollowsController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
@@ -29,11 +29,20 @@ export class FollowsController {
   ) {}
 
   @Post()
-  async followUser(@Body() followDto: FollowDto, @Res() res: Response) {
+  @UseGuards(JwtGuard)
+  async followUser(
+    @Body() followDto: FollowDto,
+    @Req() request,
+    @Res() res: Response,
+  ) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
-      const follow = await this.followsService.followUser(followDto, session);
+      const follow = await this.followsService.followUser(
+        request.user._id,
+        followDto,
+        session,
+      );
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json(follow);
     } catch {
@@ -45,11 +54,20 @@ export class FollowsController {
   }
 
   @Delete()
-  async unfollowUser(@Body() followDto: FollowDto, @Res() res: Response) {
+  @UseGuards(JwtGuard)
+  async unfollowUser(
+    @Body() followDto: FollowDto,
+    @Req() request,
+    @Res() res: Response,
+  ) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
-      const follow = await this.followsService.unfollowUser(followDto, session);
+      const follow = await this.followsService.unfollowUser(
+        request.user._id,
+        followDto,
+        session,
+      );
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({ message: 'Unfollowed', follow });
     } catch {
