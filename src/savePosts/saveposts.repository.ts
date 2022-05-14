@@ -43,7 +43,7 @@ export class SavePostRepository {
 
   async getSavePost(user_id: Types.ObjectId) {
     try {
-      let savePosts: any = await this.savePostModel
+      const savePosts: any = await this.savePostModel
         .find({ user_id: user_id })
         .populate({
           path: 'post_id',
@@ -63,7 +63,7 @@ export class SavePostRepository {
 
   async getSavePostById(savepost_id: Types.ObjectId) {
     try {
-      let savePost = await this.savePostModel
+      const savePost = await this.savePostModel
         .findById({ _id: savepost_id })
         .populate('user_id')
         .populate('post_id');

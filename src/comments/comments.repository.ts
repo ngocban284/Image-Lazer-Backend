@@ -21,7 +21,7 @@ export class CommentRepository {
     session: ClientSession,
   ) {
     try {
-      let comment = new this.commentModel(commentDto, user_id);
+      const comment = new this.commentModel(commentDto, user_id);
       await comment.save({ session: session });
       return comment;
     } catch (error) {
@@ -32,12 +32,12 @@ export class CommentRepository {
   async getComment(getComment: GetCommentDto) {
     try {
       if (getComment.post_id) {
-        let comments = await this.commentModel
+        const comments = await this.commentModel
           .find({ post_id: getComment.post_id })
           .populate('user_id');
         return comments;
       } else {
-        let comments = await this.commentModel
+        const comments = await this.commentModel
           .find({ parentComment_id: getComment.parentComment_id })
           .populate('user_id');
         return comments;

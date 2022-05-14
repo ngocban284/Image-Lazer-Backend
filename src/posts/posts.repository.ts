@@ -25,7 +25,7 @@ export class PostRepository {
   async attachFollower(user_id: Types.ObjectId) {
     // console.log(user_id);
     const parserId = user_id.toString();
-    let follow = await this.followModel
+    const follow = await this.followModel
       .find({ followed_user_id: parserId })
       .populate('user_id')
       .lean()
@@ -38,7 +38,7 @@ export class PostRepository {
       return null;
     }
 
-    let likes = await this.likeModel
+    const likes = await this.likeModel
       .find({ post_id: givenPost._id + '' })
       .populate('user_id')
       .lean()
@@ -46,14 +46,14 @@ export class PostRepository {
 
     givenPost.likes = likes;
 
-    let comments: any = await this.commentModel
+    const comments: any = await this.commentModel
       .find({ post_id: givenPost._id + '' })
       .populate('user_id')
       .lean()
       .exec();
 
     for (let i = 0; i < comments.length; i++) {
-      let replies = await this.commentModel
+      const replies = await this.commentModel
         .find({ parentComment_id: comments[i]._id + '' })
         .populate('user_id')
         .lean()
@@ -73,7 +73,7 @@ export class PostRepository {
     session: ClientSession,
   ) {
     try {
-      let post = new this.postModel({ ...postDto, user_id: user_id });
+      const post = new this.postModel({ ...postDto, user_id: user_id });
       await post.save({ session: session });
       return post;
     } catch {
@@ -83,12 +83,12 @@ export class PostRepository {
 
   async getPost(getPost: GetPostDto) {
     try {
-      let pageNumber = getPost.pageNumber || 1;
-      let limit = getPost.limit || 25;
+      const pageNumber = getPost.pageNumber || 1;
+      const limit = getPost.limit || 25;
 
       const skip = (pageNumber - 1) * limit;
 
-      let posts: any = await this.postModel
+      const posts: any = await this.postModel
         .find({})
         .populate('user_id')
         .skip(skip)
@@ -132,7 +132,7 @@ export class PostRepository {
     session: ClientSession,
   ) {
     try {
-      let post = await this.postModel.findOne({
+      const post = await this.postModel.findOne({
         $and: [{ _id: post_id }, { user_id: user_id }],
       });
       if (!post) {
@@ -161,14 +161,14 @@ export class PostRepository {
     session: ClientSession,
   ) {
     try {
-      let post = await this.postModel.findOne({
+      const post = await this.postModel.findOne({
         $and: [{ _id: post_id }, { user_id: user_id }],
       });
       if (!post) {
         throw new UnauthorizedException();
       }
       await this.postModel.findByIdAndDelete(post_id, { session: session });
-      let postDeleted = await this.postModel.find({}).lean().exec();
+      const postDeleted = await this.postModel.find({}).lean().exec();
       return postDeleted;
     } catch {
       throw new InternalServerErrorException();
@@ -177,7 +177,7 @@ export class PostRepository {
 
   async getPostByTag(tag: string) {
     try {
-      let post = await this.postModel
+      const post = await this.postModel
         .find({ tags: { $regex: tag, $options: '$i' } })
         .lean()
         .exec();

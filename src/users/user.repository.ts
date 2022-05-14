@@ -75,7 +75,7 @@ export class UserRepository {
     updateUserDto: UpdateUserDto,
     session: ClientSession,
   ) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -92,7 +92,7 @@ export class UserRepository {
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -113,7 +113,7 @@ export class UserRepository {
     refreshTokenExpiry: number,
   ) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: refreshToken,
@@ -131,7 +131,7 @@ export class UserRepository {
 
   async deleteRefreshToken(user_id: Types.ObjectId) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: null,
