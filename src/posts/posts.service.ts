@@ -13,8 +13,12 @@ import { UpdatePostDto } from './dto/updatePost.dto';
 export class PostsService {
   constructor(private readonly postRepository: PostRepository) {}
 
-  async createPost(postDto: CreatePostDto, session: ClientSession) {
-    return await this.postRepository.createPost(postDto, session);
+  async createPost(
+    user_id: Types.ObjectId,
+    postDto: CreatePostDto,
+    session: ClientSession,
+  ) {
+    return await this.postRepository.createPost(user_id, postDto, session);
   }
 
   async getPosts(getPost: GetPostDto) {
@@ -22,19 +26,25 @@ export class PostsService {
   }
 
   async updatePost(
+    user_id: Types.ObjectId,
     post_id: Types.ObjectId,
     updatePostDto: UpdatePostDto,
     session: ClientSession,
   ) {
     return await this.postRepository.updatePost(
+      user_id,
       post_id,
       updatePostDto,
       session,
     );
   }
 
-  async deletePost(post_id: Types.ObjectId, session: ClientSession) {
-    return await this.postRepository.deletePost(post_id, session);
+  async deletePost(
+    user_id: Types.ObjectId,
+    post_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
+    return await this.postRepository.deletePost(user_id, post_id, session);
   }
 
   async getPostById(post_id: Types.ObjectId) {

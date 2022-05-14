@@ -12,8 +12,8 @@ import { GetLikeDto } from './dto/getLike.dto';
 export class LikesService {
   constructor(private readonly likeRepository: LikeRepository) {}
 
-  async createLike(likeDto: CreateLikeDto, session: ClientSession) {
-    return await this.likeRepository.createLike(likeDto, session);
+  async createLike(user_id, likeDto: CreateLikeDto, session: ClientSession) {
+    return await this.likeRepository.createLike(user_id, likeDto, session);
   }
 
   async getLikes(getLikeDto: GetLikeDto) {

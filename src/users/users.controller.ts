@@ -1,6 +1,7 @@
 import {
   Body,
   Res,
+  Req,
   HttpStatus,
   Param,
   Controller,
@@ -11,13 +12,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
-import { Schema as MongoSchema, Connection } from 'mongoose';
+import { Schema as MongoSchema, Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
-import { JwtGuard } from './guards/jwt.guard';
+import { JwtGuard } from './jwt/guards/jwt.guard';
+import { request } from 'http';
 
 @Controller('users')
 export class UsersController {
@@ -27,7 +29,7 @@ export class UsersController {
   ) {}
 
   @Get()
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   async getAllUsers(@Res() res: Response) {
     const users = await this.usersService.getAllUsers();
     return res.status(HttpStatus.OK).json(users);
@@ -36,9 +38,11 @@ export class UsersController {
   @Get('/:id')
   @UseGuards(JwtGuard)
   async getUserById(
-    @Param('id') id: MongoSchema.Types.ObjectId,
+    @Param('id') id: Types.ObjectId,
+    @Req() request,
     @Res() res: Response,
   ) {
+    // console.log(request.user);
     const user = await this.usersService.getUserById(id);
     return res.status(HttpStatus.OK).json(user);
   }
@@ -47,7 +51,7 @@ export class UsersController {
   async createUser(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
-    console.log(createUserDto);
+    // console.log(createUserDto);
     try {
       const user = await this.usersService.createUser(createUserDto, session);
       await session.commitTransaction();
@@ -61,14 +65,34 @@ export class UsersController {
   }
 
   @Post('/auth/signin')
-  signIn(@Body() logInUserDto: LogInUserDto) {
-    return this.usersService.login(logInUserDto);
+  async signIn(@Body() logInUserDto: LogInUserDto, @Res() res: Response) {
+    const token = await this.usersService.login(logInUserDto);
+    const tomorrow = new Date();
+    tomorrow.setDate(new Date().getDate() + 1);
+    res.cookie('refreshToken', token.refreshToken, {
+      expires: tomorrow,
+      sameSite: 'strict',
+      secure: false,
+      httpOnly: true,
+    });
+    return res.status(HttpStatus.OK).json(token);
+  }
+
+  @Post('/auth/logout')
+  @UseGuards(JwtGuard)
+  async logOut(@Req() request, @Res() res: Response) {
+    try {
+      res.clearCookie('refreshToken');
+      return res.status(HttpStatus.OK).json({ message: 'logged out' });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json(error);
+    }
   }
 
   @Patch('/:id')
   @UseGuards(JwtGuard)
   async updateUser(
-    @Param('id') id: MongoSchema.Types.ObjectId,
+    @Param('id') id: Types.ObjectId,
     @Body() updateUserDto: UpdateUserDto,
     @Res() res: Response,
   ) {
@@ -92,10 +116,7 @@ export class UsersController {
 
   @Delete('/:id')
   @UseGuards(JwtGuard)
-  async deleteUser(
-    @Param('id') id: MongoSchema.Types.ObjectId,
-    @Res() res: Response,
-  ) {
+  async deleteUser(@Param('id') id: Types.ObjectId, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {

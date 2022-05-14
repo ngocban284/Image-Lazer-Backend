@@ -13,22 +13,20 @@ export class SavePostRepository {
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
   ) {}
 
-  async createSavePost(savePostDto: SavePostDto, session: ClientSession) {
+  async createSavePost(
+    user_id: Types.ObjectId,
+    savePostDto: SavePostDto,
+    session: ClientSession,
+  ) {
     try {
       let savePost = await this.savePostModel.findOne({
-        $and: [
-          { user_id: savePostDto.user_id },
-          { post_id: savePostDto.post_id },
-        ],
+        $and: [{ user_id: user_id }, { post_id: savePostDto.post_id }],
       });
 
       if (savePost) {
         savePost = await this.savePostModel.findOneAndDelete(
           {
-            $and: [
-              { user_id: savePostDto.user_id },
-              { post_id: savePostDto.post_id },
-            ],
+            $and: [{ user_id: user_id }, { post_id: savePostDto.post_id }],
           },
           { session: session },
         );

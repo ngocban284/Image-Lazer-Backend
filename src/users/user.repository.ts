@@ -4,10 +4,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema as MongoSchema, ClientSession } from 'mongoose';
+import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 
 export class UserRepository {
   constructor(
@@ -34,7 +35,7 @@ export class UserRepository {
     return user;
   }
 
-  async getUserById(id: MongoSchema.Types.ObjectId) {
+  async getUserById(id: Types.ObjectId) {
     let user;
     try {
       user = await this.userModel.findById(id);
@@ -70,7 +71,7 @@ export class UserRepository {
   }
 
   async updateUser(
-    id: MongoSchema.Types.ObjectId,
+    id: Types.ObjectId,
     updateUserDto: UpdateUserDto,
     session: ClientSession,
   ) {
@@ -90,7 +91,7 @@ export class UserRepository {
     return user;
   }
 
-  async deleteUser(id: MongoSchema.Types.ObjectId, session: ClientSession) {
+  async deleteUser(id: Types.ObjectId, session: ClientSession) {
     let user = await this.getUserById(id);
 
     if (!user) {
@@ -104,5 +105,45 @@ export class UserRepository {
     }
 
     return user;
+  }
+
+  async saveOrUpdateRefreshToken(
+    user_id: Types.ObjectId,
+    refreshToken: string,
+    refreshTokenExpiry: number,
+  ) {
+    try {
+      let user = await this.userModel.findOneAndUpdate(
+        { _id: user_id },
+        {
+          refreshToken: refreshToken,
+          refreshTokenExpiry: refreshTokenExpiry,
+        },
+      );
+      if (!user) {
+        throw new NotFoundException();
+      }
+      return user;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deleteRefreshToken(user_id: Types.ObjectId) {
+    try {
+      let user = await this.userModel.findOneAndUpdate(
+        { _id: user_id },
+        {
+          refreshToken: null,
+          refreshTokenExpiry: null,
+        },
+      );
+      if (!user) {
+        throw new NotFoundException();
+      }
+      return user;
+    } catch {
+      throw new InternalServerErrorException();
+    }
   }
 }

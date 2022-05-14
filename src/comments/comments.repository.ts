@@ -15,9 +15,13 @@ export class CommentRepository {
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
   ) {}
 
-  async createComment(commentDto: CreateCommentDto, session: ClientSession) {
+  async createComment(
+    user_id: Types.ObjectId,
+    commentDto: CreateCommentDto,
+    session: ClientSession,
+  ) {
     try {
-      let comment = new this.commentModel(commentDto);
+      let comment = new this.commentModel(commentDto, user_id);
       await comment.save({ session: session });
       return comment;
     } catch (error) {
@@ -44,29 +48,48 @@ export class CommentRepository {
   }
 
   async updateComment(
+    user_id: Types.ObjectId,
     comment_id: Types.ObjectId,
     updateCommentDto: UpdateCommentDto,
     session: ClientSession,
   ) {
     try {
-      let comment = await this.commentModel.findByIdAndUpdate(
-        comment_id,
-        updateCommentDto,
-        { new: true, session: session },
-      );
-      return comment;
+      let comment = await this.commentModel.findOne({
+        $and: [{ _id: comment_id }, { user_id: user_id }],
+      });
+      if (comment) {
+        comment = await this.commentModel.findByIdAndUpdate(
+          comment_id,
+          updateCommentDto,
+          { new: true, session: session },
+        );
+        return comment;
+      } else {
+        throw new ConflictException();
+      }
     } catch (error) {
       throw new InternalServerErrorException();
     }
   }
 
-  async deleteComment(comment_id: Types.ObjectId, session: ClientSession) {
+  async deleteComment(
+    user_id: Types.ObjectId,
+    comment_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
     try {
-      let comment = await this.commentModel.findByIdAndDelete(comment_id, {
-        session: session,
+      let comment = await this.commentModel.findOne({
+        $and: [{ _id: comment_id }, { user_id: user_id }],
       });
 
-      return comment;
+      if (comment) {
+        comment = await this.commentModel.findByIdAndDelete(comment_id, {
+          session: session,
+        });
+        return comment;
+      } else {
+        throw new ConflictException();
+      }
     } catch (error) {
       throw new InternalServerErrorException();
     }

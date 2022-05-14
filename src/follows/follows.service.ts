@@ -11,12 +11,24 @@ import { FollowRepository } from './follows.repository';
 export class FollowsService {
   constructor(private readonly followRepository: FollowRepository) {}
 
-  async followUser(followDto: FollowDto, session: ClientSession) {
-    return await this.followRepository.followUser(followDto, session);
+  async followUser(
+    user_id: Types.ObjectId,
+    followDto: FollowDto,
+    session: ClientSession,
+  ) {
+    return await this.followRepository.followUser(user_id, followDto, session);
   }
 
-  async unfollowUser(followDto: FollowDto, session: ClientSession) {
-    return await this.followRepository.unfollowUser(followDto, session);
+  async unfollowUser(
+    user_id: Types.ObjectId,
+    followDto: FollowDto,
+    session: ClientSession,
+  ) {
+    return await this.followRepository.unfollowUser(
+      user_id,
+      followDto,
+      session,
+    );
   }
 
   async followedUser(user_id: Types.ObjectId) {
