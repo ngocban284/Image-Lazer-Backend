@@ -32,8 +32,11 @@ export class FollowRepository {
     return data;
   }
 
-  async followUser(followDto: FollowDto, session: ClientSession) {
-    const user_id = followDto.user_id;
+  async followUser(
+    user_id: Types.ObjectId,
+    followDto: FollowDto,
+    session: ClientSession,
+  ) {
     const followed_user_id = followDto.followed_user_id;
 
     const followed = await this.followModel.findOne({
@@ -57,8 +60,11 @@ export class FollowRepository {
     }
   }
 
-  async unfollowUser(unfollowDto: FollowDto, session: ClientSession) {
-    const user_id = unfollowDto.user_id;
+  async unfollowUser(
+    user_id: Types.ObjectId,
+    unfollowDto: FollowDto,
+    session: ClientSession,
+  ) {
     const followed_user_id = unfollowDto.followed_user_id;
     try {
       await this.followModel.deleteOne(

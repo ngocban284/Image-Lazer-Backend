@@ -1,20 +1,24 @@
 import {
   Body,
   Res,
+  Req,
   HttpStatus,
   Param,
   Controller,
   Delete,
   Get,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { SavePostService } from './saveposts.service';
 import { SavePostDto } from './dto/savepost.dto';
+import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
 
 @Controller('saveposts')
+@UseGuards(JwtGuard)
 export class SavePostController {
   constructor(
     private readonly savePostService: SavePostService,
@@ -22,12 +26,17 @@ export class SavePostController {
   ) {}
 
   @Post()
-  async createSavePost(@Body() savePostDto: SavePostDto, @Res() res: Response) {
+  async createSavePost(
+    @Body() savePostDto: SavePostDto,
+    @Req() request,
+    @Res() res: Response,
+  ) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
 
     try {
       const savePost = await this.savePostService.createSavePost(
+        request.user._id,
         savePostDto,
         session,
       );
@@ -41,12 +50,9 @@ export class SavePostController {
     }
   }
 
-  @Get('/users/:user_id')
-  async getSavePost(
-    @Param('user_id') user_id: Types.ObjectId,
-    @Res() res: Response,
-  ) {
-    const savePost = await this.savePostService.getSavePost(user_id);
+  @Get('/users')
+  async getSavePost(@Req() request, @Res() res: Response) {
+    const savePost = await this.savePostService.getSavePost(request.user._id);
     return res.status(HttpStatus.OK).json(savePost);
   }
 

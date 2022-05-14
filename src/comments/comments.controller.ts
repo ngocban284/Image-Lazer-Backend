@@ -5,6 +5,7 @@ https://docs.nestjs.com/controllers#controllers
 import {
   Controller,
   Res,
+  Req,
   HttpStatus,
   Param,
   Body,
@@ -12,6 +13,7 @@ import {
   Get,
   Patch,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -20,6 +22,7 @@ import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/createComment.dto';
 import { GetCommentDto } from './dto/getComment.dto';
 import { UpdateCommentDto } from './dto/updateComment.dto';
+import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
 
 @Controller('/comments')
 export class CommentsController {
@@ -29,8 +32,10 @@ export class CommentsController {
   ) {}
 
   @Post()
+  @UseGuards(JwtGuard)
   async createComment(
     @Body() createCommentDto: CreateCommentDto,
+    @Req() request,
     @Res() res: Response,
   ) {
     const session = await this.mongoConnection.startSession();
@@ -38,6 +43,7 @@ export class CommentsController {
 
     try {
       const comment = await this.commentsService.createComment(
+        request.user._id,
         createCommentDto,
         session,
       );
@@ -61,9 +67,11 @@ export class CommentsController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtGuard)
   async updateComment(
     @Param('id') comment_id: Types.ObjectId,
     @Body() updateCommentDto: UpdateCommentDto,
+    @Req() request,
     @Res() res: Response,
   ) {
     const session = await this.mongoConnection.startSession();
@@ -71,6 +79,7 @@ export class CommentsController {
 
     try {
       const comment = await this.commentsService.updateComment(
+        request.user._id,
         comment_id,
         updateCommentDto,
         session,
@@ -86,8 +95,10 @@ export class CommentsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtGuard)
   async deleteComment(
     @Param('id') comment_id: Types.ObjectId,
+    @Req() request,
     @Res() res: Response,
   ) {
     const session = await this.mongoConnection.startSession();
@@ -95,6 +106,7 @@ export class CommentsController {
 
     try {
       const comment = await this.commentsService.deleteComment(
+        request.user._id,
         comment_id,
         session,
       );

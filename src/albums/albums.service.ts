@@ -13,8 +13,12 @@ import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
 export class AlbumsService {
   constructor(private readonly albumRepository: AlbumRepository) {}
 
-  async createAlbum(albumDto: CreateAlbumDto, session: ClientSession) {
-    return await this.albumRepository.createAlbum(albumDto, session);
+  async createAlbum(
+    user_id: Types.ObjectId,
+    albumDto: CreateAlbumDto,
+    session: ClientSession,
+  ) {
+    return await this.albumRepository.createAlbum(user_id, albumDto, session);
   }
 
   async getAlbum() {
@@ -26,11 +30,13 @@ export class AlbumsService {
   }
 
   async updateAlbum(
+    user_id: Types.ObjectId,
     album_id: Types.ObjectId,
     updateAlbumDto: UpdateAlbumDto,
     session: ClientSession,
   ) {
     return await this.albumRepository.updateAlbum(
+      user_id,
       album_id,
       updateAlbumDto,
       session,
@@ -38,10 +44,16 @@ export class AlbumsService {
   }
 
   async deleteAlbum(
+    user_id: Types.ObjectId,
     post_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
-    return await this.albumRepository.deleteAlbum(post_id, deletePost, session);
+    return await this.albumRepository.deleteAlbum(
+      user_id,
+      post_id,
+      deletePost,
+      session,
+    );
   }
 }

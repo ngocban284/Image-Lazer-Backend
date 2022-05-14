@@ -6,8 +6,8 @@ import { Module } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UsersController } from './users.controller';
 import { JwtModule } from '@nestjs/jwt';
-import { JwtGuard } from './guards/jwt.guard';
-import { JwtStrategy } from './guards/jwt.strategy';
+import { JwtGuard } from './jwt/guards/jwt.guard';
+import { JwtStrategy } from './jwt/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 
 @Module({

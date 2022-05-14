@@ -1,10 +1,17 @@
+import { JwtService } from '@nestjs/jwt';
 import { AddNewConnectedUserDto } from './dto/add-new-connected.dto';
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
 export class ChatService {
+  constructor(private readonly jwtService: JwtService) {}
   private logger: Logger = new Logger('ChatGateWay');
   private connectedUsers = new Map();
+
+  currentUserId = async (token: string) => {
+    const decoded = await this.jwtService.verifyAsync(token);
+    return decoded;
+  };
 
   addNewConnectedUser = (addNewConnectedUserDto: AddNewConnectedUserDto) => {
     const { clientId, userId } = addNewConnectedUserDto;
