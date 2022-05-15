@@ -1,3 +1,4 @@
+import { FriendInvitationService } from './friend-invitation/friend-invitation.service';
 import { ChatService } from './chat.service';
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import {
@@ -8,6 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
+
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -16,7 +18,10 @@ import { Socket, Server } from 'socket.io';
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly friendInvitationService: FriendInvitationService,
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -38,6 +43,7 @@ export class ChatGateway
     const userId = user.user_id.toString();
     this.logger.log(`User connected ${client.id}`);
     this.chatService.addNewConnectedUser({ clientId, userId });
+    this.friendInvitationService.updateFriends(userId);
   }
 
   handleDisconnect(client: Socket) {
@@ -50,4 +56,8 @@ export class ChatGateway
     client.emit('Error', new UnauthorizedException());
     client.disconnect();
   }
+
+  getSocketServerInstance = () => {
+    return this.server;
+  };
 }

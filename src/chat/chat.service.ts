@@ -27,4 +27,16 @@ export class ChatService {
       console.log(this.connectedUsers);
     }
   };
+
+  getActiveConnections = (userId: string) => {
+    const activeConnections = [];
+
+    this.connectedUsers.forEach(function (value, key) {
+      if (value.userId === userId) {
+        activeConnections.push(key);
+      }
+    });
+
+    return activeConnections;
+  };
 }

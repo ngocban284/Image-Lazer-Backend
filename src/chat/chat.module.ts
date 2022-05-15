@@ -1,3 +1,6 @@
+import { FollowsModule } from './../follows/follows.module';
+import { FollowRepository } from './../follows/follows.repository';
+import { FriendInvitationService } from './friend-invitation/friend-invitation.service';
 import { UsersModule } from 'src/users/users.module';
 import { UserRepository } from 'src/users/user.repository';
 import { JwtModule } from '@nestjs/jwt';
@@ -16,6 +19,7 @@ import { AuthSocketMiddleware } from './authSocket.middleware';
     ConversationModule,
     MessageModule,
     UsersModule,
+    FollowsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,7 +31,13 @@ import { AuthSocketMiddleware } from './authSocket.middleware';
       }),
     }),
   ],
-  providers: [ChatGateway, ChatService, UserRepository],
+  providers: [
+    ChatGateway,
+    ChatService,
+    UserRepository,
+    FriendInvitationService,
+    FollowRepository,
+  ],
   exports: [
     ChatGateway,
     ChatService,

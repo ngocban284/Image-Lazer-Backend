@@ -75,4 +75,13 @@ export class FollowRepository {
       throw new InternalServerErrorException();
     }
   }
+
+  async followingByUser(user_id: Types.ObjectId | string) {
+    const user = await this.followModel
+      .find({ user_id: user_id })
+      .populate('user_id', '_id email userName fullname')
+      .populate('followed_user_id', '_id email userName fullname');
+
+    return user;
+  }
 }
