@@ -34,7 +34,6 @@ export class ChatGateway
     if (!user) {
       return this.disconnect(client);
     }
-    console.log(user);
     client.data.user = user;
     const userId = user.user_id.toString();
     this.logger.log(`User connected ${client.id}`);
