@@ -1,3 +1,5 @@
+import { ChatService } from './../chat.service';
+import { ChatGateway } from './../chat.gateway';
 import { DirectChatHistoryDto } from './dto/direct-chat-history.dto';
 import { DirectMessageDto } from './dto/direct-message.dto';
 import { Server, Socket } from 'socket.io';
@@ -10,6 +12,7 @@ import {
   Conversation,
   ConversationDocument,
 } from '../conversation/entities/conversation.entity';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 @WebSocketGateway({
@@ -25,6 +28,10 @@ export class MessageService {
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<ConversationDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    private readonly chatGateway: ChatGateway,
+    private readonly chatService: ChatService,
   ) {}
 
   directMessageHandler = async (client: Socket, data: DirectMessageDto) => {
@@ -51,7 +58,8 @@ export class MessageService {
         conversation.messages.push(message._id);
         await conversation.save();
 
-        //TODO: chat update, update chat history
+        // chat update, update chat history
+        this.updateChatHistory(conversation._id.toString());
       } else {
         // create new conversation if not exists
         const newConversation = await this.conversationModel.create({
@@ -59,7 +67,8 @@ export class MessageService {
           participants: [userId, receiverUserId],
         });
 
-        //TODO: chat update, update chat history
+        // chat update, update chat history
+        this.updateChatHistory(conversation._id.toString());
       }
     } catch (error) {
       console.log(error);
@@ -79,10 +88,52 @@ export class MessageService {
       });
 
       if (conversation) {
-        //TODO: update chat history
+        // update chat history
+        this.updateChatHistory(conversation._id.toString(), client.id);
       }
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  updateChatHistory = async (
+    conversationId: string,
+    toSpecifiedSocketId = null,
+  ) => {
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .populate({
+        path: 'messages',
+        model: Message.name,
+        populate: {
+          path: 'author',
+          model: User.name,
+          select: 'userName _id',
+        },
+      });
+
+    if (conversation) {
+      const io = this.chatGateway.getSocketServerInstance();
+
+      if (toSpecifiedSocketId) {
+        return io.to(toSpecifiedSocketId).emit('direct-chat-history', {
+          messages: conversation.messages,
+          participants: conversation.participants,
+        });
+      }
+
+      conversation.participants.forEach((userId) => {
+        const activeConnections = this.chatService.getActiveConnections(
+          userId.toString(),
+        );
+
+        activeConnections.forEach((clientId) => {
+          io.to(clientId).emit('direct-chat-history', {
+            messages: conversation.messages,
+            participants: conversation.participants,
+          });
+        });
+      });
     }
   };
 }

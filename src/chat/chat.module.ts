@@ -1,12 +1,12 @@
 import { FollowsModule } from './../follows/follows.module';
 import { FollowRepository } from './../follows/follows.repository';
-import { FriendInvitationService } from './friend-invitation/friend-invitation.service';
+import { UserFollowingService } from './user-following/user-following.service';
 import { UsersModule } from 'src/users/users.module';
 import { UserRepository } from 'src/users/user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageModule } from './message/message.module';
-import { FriendInvitationModule } from './friend-invitation/friend-invitation.module';
+import { UserFollowingModule } from './user-following/user-following.module';
 import { ConversationModule } from './conversation/conversation.module';
 import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
@@ -15,7 +15,7 @@ import { AuthSocketMiddleware } from './authSocket.middleware';
 
 @Module({
   imports: [
-    FriendInvitationModule,
+    UserFollowingModule,
     ConversationModule,
     MessageModule,
     UsersModule,
@@ -35,13 +35,13 @@ import { AuthSocketMiddleware } from './authSocket.middleware';
     ChatGateway,
     ChatService,
     UserRepository,
-    FriendInvitationService,
+    UserFollowingService,
     FollowRepository,
   ],
   exports: [
     ChatGateway,
     ChatService,
-    FriendInvitationModule,
+    UserFollowingModule,
     ConversationModule,
     MessageModule,
   ],

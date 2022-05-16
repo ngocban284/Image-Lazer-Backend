@@ -62,7 +62,7 @@ export class UsersService {
 
   async generateRefreshToken(user_id: Types.ObjectId) {
     const refreshtoken = this.jwtService.sign({ user_id }, { expiresIn: '3d' });
-    console.log(currentTime.unix());
+    // console.log(currentTime.unix());
     const payload: any = this.jwtService.decode(refreshtoken);
     // console.log(payload.exp, typeof payload.exp);
     await this.userRepository.saveOrUpdateRefreshToken(

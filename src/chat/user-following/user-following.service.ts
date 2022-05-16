@@ -1,8 +1,8 @@
 import { Server } from 'socket.io';
-import { ChatGateway } from './../chat.gateway';
-import { FollowRepository } from './../../follows/follows.repository';
-import { ChatService } from './../chat.service';
-import { UserRepository } from './../../users/user.repository';
+import { ChatGateway } from '../chat.gateway';
+import { FollowRepository } from '../../follows/follows.repository';
+import { ChatService } from '../chat.service';
+import { UserRepository } from '../../users/user.repository';
 import { Injectable } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
@@ -12,7 +12,7 @@ import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
     origin: '*',
   },
 })
-export class FriendInvitationService {
+export class UserFollowingService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly chatService: ChatService,
@@ -34,11 +34,9 @@ export class FriendInvitationService {
             return {
               id: followUser.followed_user_id._id,
               email: followUser.followed_user_id['email'].toString(),
-              userName: followUser.followed_user_id['userName'].toString(),
-              fullName: 'irene',
+              username: followUser.followed_user_id['userName'].toString(),
             };
           });
-
           receiverList.forEach((receiverClientId) => {
             this.server.to(receiverClientId).emit('follows-list', {
               followsUser: followsUserList ? followsUserList : [],

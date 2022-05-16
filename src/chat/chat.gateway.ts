@@ -1,4 +1,4 @@
-import { FriendInvitationService } from './friend-invitation/friend-invitation.service';
+import { UserFollowingService } from './user-following/user-following.service';
 import { ChatService } from './chat.service';
 import { Logger, UnauthorizedException } from '@nestjs/common';
 import {
@@ -20,7 +20,7 @@ export class ChatGateway
 {
   constructor(
     private readonly chatService: ChatService,
-    private readonly friendInvitationService: FriendInvitationService,
+    private readonly userFollowingService: UserFollowingService,
   ) {}
 
   @WebSocketServer()
@@ -43,7 +43,7 @@ export class ChatGateway
     const userId = user.user_id.toString();
     this.logger.log(`User connected ${client.id}`);
     this.chatService.addNewConnectedUser({ clientId, userId });
-    this.friendInvitationService.updateFriends(userId);
+    // this.userFollowingService.updateFriends(userId);
   }
 
   handleDisconnect(client: Socket) {
