@@ -19,13 +19,14 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
 import { JwtGuard } from './jwt/guards/jwt.guard';
-import { request } from 'http';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller('users')
 export class UsersController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
+    private jwtService: JwtService,
   ) {}
 
   @Get()
@@ -69,6 +70,7 @@ export class UsersController {
     const token = await this.usersService.login(logInUserDto);
     const tomorrow = new Date();
     tomorrow.setDate(new Date().getDate() + 1);
+    res.header('Authorization', token.accessToken);
     res.cookie('refreshToken', token.refreshToken, {
       expires: tomorrow,
       sameSite: 'strict',
@@ -76,6 +78,32 @@ export class UsersController {
       httpOnly: true,
     });
     return res.status(HttpStatus.OK).json(token);
+  }
+
+  @Post('/auth/refresh')
+  @UseGuards(JwtGuard)
+  async refreshToken(@Req() request, @Res() res: Response) {
+    let refreshToken = request.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'no token' });
+    }
+    const token = await this.jwtService.sign(request.user._id);
+    const user: any = await this.usersService.generateRefreshToken(
+      request.user._id,
+    );
+    refreshToken = user.refreshToken;
+
+    const tomorrow = new Date();
+    tomorrow.setDate(new Date().getDate() + 1);
+
+    res.header('Authorization', token);
+    res.cookie('refreshToken', refreshToken, {
+      expires: tomorrow,
+      sameSite: 'strict',
+      secure: false,
+      httpOnly: true,
+    });
+    return res.status(HttpStatus.OK).json(refreshToken);
   }
 
   @Post('/auth/logout')

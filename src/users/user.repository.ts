@@ -49,6 +49,9 @@ export class UserRepository {
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
+    const email = createUserDto.email;
+    const userName = '@' + email.split('@')[0];
+
     let user = await this.getUserByEmail(createUserDto.email);
 
     if (user) {
@@ -58,6 +61,7 @@ export class UserRepository {
     console.log(createUserDto);
     user = new this.userModel({
       ...createUserDto,
+      userName,
     });
     console.log(user);
 
