@@ -9,7 +9,6 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from './config/config.service';
-import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { UploadsModule } from './uploads/uploads.module';
       useFactory: async (configService: ConfigService) =>
         configService.getMongoConfig(),
     }),
-    UploadsModule,
     UsersModule,
     CommentsModule,
     FollowsModule,
