@@ -50,7 +50,7 @@ export class UserRepository {
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
     const email = createUserDto.email;
-    const userName = '@' + email.split('@')[0];
+    let userName = '@' + email.split('@')[0];
 
     let user = await this.getUserByEmail(createUserDto.email);
 
@@ -58,20 +58,26 @@ export class UserRepository {
       throw new ConflictException('Email already exists');
     }
 
-    console.log(createUserDto);
+    // console.log(createUserDto);
     user = new this.userModel({
       ...createUserDto,
       userName,
     });
-    console.log(user);
+    userName = userName + '_' + user.id;
+    // console.log(userName);
+    await user.save();
+    const newUser = await this.userModel.findByIdAndUpdate(
+      user.id,
+      { userName: userName },
+      { new: true },
+    );
 
     try {
-      await user.save({ session });
+      await newUser.save({ session });
+      return newUser;
     } catch {
       throw new InternalServerErrorException();
     }
-
-    return user;
   }
 
   async updateUser(
