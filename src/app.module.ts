@@ -27,7 +27,7 @@ import { ConfigService } from './config/config.service';
     AlbumsModule,
     SavePostsModule,
   ],
-  providers: [CommentsGateway],
+  providers: [],
   controllers: [],
 })
 export class AppModule {}
