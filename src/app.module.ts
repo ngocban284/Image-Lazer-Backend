@@ -1,3 +1,4 @@
+import { CommentsGateway } from './comments/comments.gateway';
 import { ConfigModule } from './config/config.module';
 import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
@@ -26,7 +27,7 @@ import { ConfigService } from './config/config.service';
     AlbumsModule,
     SavePostsModule,
   ],
-  providers: [],
+  providers: [CommentsGateway],
   controllers: [],
 })
 export class AppModule {}
