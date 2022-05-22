@@ -56,6 +56,14 @@ export class UsersService {
     return await this.userRepository.updateUser(id, updateUserDto, session);
   }
 
+  async updateAvatar(
+    user_id: Types.ObjectId,
+    avatar: string,
+    session: ClientSession,
+  ) {
+    return await this.userRepository.updateAvatar(user_id, avatar, session);
+  }
+
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
     return await this.userRepository.deleteUser(id, session);
   }

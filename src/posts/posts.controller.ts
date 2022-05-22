@@ -14,6 +14,8 @@ import {
   Req,
   Body,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { GetPostDto } from './dto/getPost.dto';
@@ -23,6 +25,8 @@ import { Response } from 'express';
 import { Types, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../config/multer.config';
 
 @Controller('posts')
 export class PostsController {
@@ -39,8 +43,10 @@ export class PostsController {
 
   @Post()
   @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('photo', multerOptions))
   async createPost(
     @Body() postDto: CreatePostDto,
+    @UploadedFile() photo,
     @Req() request,
     @Res() res: Response,
   ) {
@@ -50,6 +56,7 @@ export class PostsController {
     try {
       const post = await this.postsService.createPost(
         request.user._id,
+        photo.filename,
         postDto,
         session,
       );

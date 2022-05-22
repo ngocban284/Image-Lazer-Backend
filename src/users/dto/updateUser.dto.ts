@@ -3,26 +3,23 @@ import { IsString, IsNotEmpty } from 'class-validator';
 export class UpdateUserDto {
   @IsString()
   @IsNotEmpty()
-  userName: string;
+  userName?: string;
 
   @IsString()
   @IsNotEmpty()
-  fullname: string;
+  fullname?: string;
 
   @IsString()
   @IsNotEmpty()
-  email: string;
+  email?: string;
 
   @IsString()
   @IsNotEmpty()
-  password: string;
+  password?: string;
 
   @IsString()
-  description: string;
+  description?: string;
 
   @IsString()
-  profile_url: string;
-
-  @IsString()
-  avatar: string;
+  profile_url?: string;
 }

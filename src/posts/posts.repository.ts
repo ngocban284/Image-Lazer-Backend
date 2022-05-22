@@ -69,11 +69,16 @@ export class PostRepository {
 
   async createPost(
     user_id: Types.ObjectId,
+    photo_url: string,
     postDto: CreatePostDto,
     session: ClientSession,
   ) {
     try {
-      let post = new this.postModel({ ...postDto, user_id: user_id });
+      let post = new this.postModel({
+        ...postDto,
+        user_id: user_id,
+        photo_url: photo_url,
+      });
       await post.save({ session: session });
       return post;
     } catch {

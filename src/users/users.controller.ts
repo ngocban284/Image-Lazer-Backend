@@ -10,6 +10,8 @@ import {
   Post,
   Patch,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection, Types } from 'mongoose';
@@ -20,6 +22,8 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
 import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../config/multer.config';
 
 @Controller('users')
 export class UsersController {
@@ -77,7 +81,7 @@ export class UsersController {
       secure: false,
       httpOnly: true,
     });
-    return res.status(HttpStatus.OK).json(token);
+    return res.status(HttpStatus.OK).json({ accessToken: token.accessToken });
   }
 
   @Post('/auth/refresh')
@@ -130,6 +134,33 @@ export class UsersController {
       const user = await this.usersService.updateUser(
         id,
         updateUserDto,
+        session,
+      );
+      await session.commitTransaction();
+      return res.status(HttpStatus.OK).json(user);
+    } catch {
+      await session.abortTransaction();
+      throw new Error();
+    } finally {
+      session.endSession();
+    }
+  }
+
+  @Patch('/upload/:user_id')
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('avatar', multerOptions))
+  async uploadAvatar(
+    @Param('user_id') user_id: Types.ObjectId,
+    @UploadedFile() avatar,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+    try {
+      const avatarHash = avatar.filename;
+      const user = await this.usersService.updateAvatar(
+        user_id,
+        avatarHash,
         session,
       );
       await session.commitTransaction();

@@ -95,6 +95,30 @@ export class UserRepository {
     return user;
   }
 
+  async updateAvatar(
+    user_id: Types.ObjectId,
+    avatar: string,
+    session: ClientSession,
+  ) {
+    try {
+      let user = await this.userModel.findOneAndUpdate(
+        { _id: user_id },
+        {
+          avatar: avatar,
+        },
+        { new: true },
+      );
+      if (!user) {
+        throw new NotFoundException();
+      }
+
+      await user.save({ session });
+      return user;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
     let user = await this.getUserById(id);
 
