@@ -35,7 +35,7 @@ export class UserRepository {
     return user;
   }
 
-  async getUserById(id: Types.ObjectId) {
+  async getUserById(id: Types.ObjectId | string) {
     let user;
     try {
       user = await this.userModel.findById(id);

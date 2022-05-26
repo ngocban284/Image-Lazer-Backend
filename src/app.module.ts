@@ -10,6 +10,7 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from './config/config.service';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ConfigService } from './config/config.service';
     LikesModule,
     AlbumsModule,
     SavePostsModule,
+    ChatModule,
   ],
   providers: [],
   controllers: [],
