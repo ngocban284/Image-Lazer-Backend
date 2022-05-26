@@ -12,7 +12,7 @@ import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
-    // UsersModule,
+    UsersModule,
     MongooseModule.forFeature([{ name: Follow.name, schema: FollowSchema }]),
   ],
   controllers: [FollowsController],
