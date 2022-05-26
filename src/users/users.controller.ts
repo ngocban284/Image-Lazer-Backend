@@ -41,7 +41,7 @@ export class UsersController {
   }
 
   @Get('/:user_name')
-  async getUserById(
+  async getUserByUserName(
     @Param('user_name') user_name: string,
     @Res() res: Response,
   ) {
@@ -56,6 +56,7 @@ export class UsersController {
         email: user.email,
         avatar: user.avatar,
         follow_count: user.follow_count,
+        follwer_count: user.follwer_count,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
@@ -107,6 +108,7 @@ export class UsersController {
         fullName: user.fullName,
         userName: user.userName,
         follow_count: user.follow_count,
+        follwer_count: user.follwer_count,
         avatar: user.avatar,
         accessToken: token.accessToken,
       });
@@ -182,6 +184,7 @@ export class UsersController {
         email: user.email,
         avatar: user.avatar,
         follow_count: user.follow_count,
+        follwer_count: user.follwer_count,
       });
     } catch {
       await session.abortTransaction();
