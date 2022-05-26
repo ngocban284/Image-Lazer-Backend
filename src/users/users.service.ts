@@ -30,6 +30,10 @@ export class UsersService {
     return await this.userRepository.getUserById(id);
   }
 
+  async getUserByUserName(userName: string) {
+    return await this.userRepository.getUserByUserName(userName);
+  }
+
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
     return await this.userRepository.createUser(createUserDto, session);
   }

@@ -53,31 +53,7 @@ export class FollowsController {
     }
   }
 
-  @Delete()
-  @UseGuards(JwtGuard)
-  async unfollowUser(
-    @Body() followDto: FollowDto,
-    @Req() request,
-    @Res() res: Response,
-  ) {
-    const session = await this.mongoConnection.startSession();
-    session.startTransaction();
-    try {
-      const follow = await this.followsService.unfollowUser(
-        request.user._id,
-        followDto,
-        session,
-      );
-      await session.commitTransaction();
-      return res.status(HttpStatus.OK).json({ message: 'Unfollowed', follow });
-    } catch {
-      await session.abortTransaction();
-      throw new Error();
-    } finally {
-      session.endSession();
-    }
-  }
-
+  // xem 1 nguoi co bao nhieu nguoi theo doi
   @Get('followed/:user_id')
   async followedUser(
     @Param('user_id') user_id: Types.ObjectId,
@@ -87,6 +63,7 @@ export class FollowsController {
     return res.status(HttpStatus.OK).json(list);
   }
 
+  // xem co bao nhieu nguoi theo doi minh
   @Get('followedBy/:user_id')
   async followedByUser(
     @Param('user_id') user_id: Types.ObjectId,

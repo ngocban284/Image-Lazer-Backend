@@ -13,6 +13,7 @@ export class FollowRepository {
     @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
   ) {}
 
+  // xem 1 nguoi co bao nhieu nguoi theo doi
   async followedUser(user_id: Types.ObjectId) {
     console.log(user_id);
     const data = await this.followModel
@@ -23,6 +24,7 @@ export class FollowRepository {
     return data;
   }
 
+  // xem co bao nhieu nguoi theo doi minh
   async followedByUser(user_id: Types.ObjectId) {
     const data = await this.followModel
       .find({ user_id: user_id })
@@ -45,7 +47,14 @@ export class FollowRepository {
     });
 
     if (followed) {
-      throw new ConflictException('You are already following this user');
+      try {
+        await this.followModel.deleteOne(
+          { user_id, followed_user_id },
+          { session },
+        );
+      } catch (error) {
+        throw new InternalServerErrorException();
+      }
     } else {
       try {
         const follow = new this.followModel({
@@ -57,22 +66,6 @@ export class FollowRepository {
       } catch {
         throw new InternalServerErrorException();
       }
-    }
-  }
-
-  async unfollowUser(
-    user_id: Types.ObjectId,
-    unfollowDto: FollowDto,
-    session: ClientSession,
-  ) {
-    const followed_user_id = unfollowDto.followed_user_id;
-    try {
-      await this.followModel.deleteOne(
-        { user_id, followed_user_id },
-        { session },
-      );
-    } catch (error) {
-      throw new InternalServerErrorException();
     }
   }
 }

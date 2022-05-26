@@ -48,6 +48,16 @@ export class UserRepository {
     return user;
   }
 
+  async getUserByUserName(userName: string) {
+    let user;
+    try {
+      user = await this.userModel.findOne({ userName });
+    } catch {
+      throw new InternalServerErrorException();
+    }
+    return user;
+  }
+
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
     const email = createUserDto.email;
     let userName = '@' + email.split('@')[0];
@@ -63,7 +73,9 @@ export class UserRepository {
       ...createUserDto,
       userName,
     });
-    userName = userName + '_' + user.id;
+    const allUser = await this.getAllUsers();
+
+    userName = userName + '_' + allUser.length;
     // console.log(userName);
     await user.save();
     const newUser = await this.userModel.findByIdAndUpdate(

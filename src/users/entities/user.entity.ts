@@ -35,6 +35,9 @@ export class User extends Document {
   @Prop({ required: false, default: 0 })
   follow_count: number;
 
+  @Prop({ required: false, default: 0 })
+  follower_count: number;
+
   @Prop({ required: false })
   refreshToken: string;
 

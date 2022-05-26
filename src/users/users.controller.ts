@@ -40,16 +40,29 @@ export class UsersController {
     return res.status(HttpStatus.OK).json(users);
   }
 
-  @Get('/:id')
-  @UseGuards(JwtGuard)
+  @Get('/:user_name')
   async getUserById(
-    @Param('id') id: Types.ObjectId,
-    @Req() request,
+    @Param('user_name') user_name: string,
     @Res() res: Response,
   ) {
     // console.log(request.user);
-    const user = await this.usersService.getUserById(id);
-    return res.status(HttpStatus.OK).json(user);
+    try {
+      const user = await this.usersService.getUserByUserName(user_name);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Lấy Thông Tin Người Dùng Thành Công !',
+        userName: user.userName,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        follow_count: user.follow_count,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Người Dùng Không Tồn Tại !',
+      });
+    }
   }
 
   @Post('/auth/signup')
@@ -71,31 +84,51 @@ export class UsersController {
 
   @Post('/auth/signin')
   async signIn(@Body() logInUserDto: LogInUserDto, @Res() res: Response) {
-    const token = await this.usersService.login(logInUserDto);
-    const tomorrow = new Date();
-    tomorrow.setDate(new Date().getDate() + 1);
-    res.header('Authorization', token.accessToken);
-    res.cookie('refreshToken', token.refreshToken, {
-      expires: tomorrow,
-      sameSite: 'strict',
-      secure: false,
-      httpOnly: true,
-    });
-    return res.status(HttpStatus.OK).json({ accessToken: token.accessToken });
-  }
+    try {
+      const token = await this.usersService.login(logInUserDto);
+      const tomorrow = new Date();
+      tomorrow.setDate(new Date().getDate() + 1);
+      res.header('Authorization', token.accessToken);
+      res.cookie('refreshToken', token.refreshToken, {
+        expires: tomorrow,
+        sameSite: 'strict',
+        secure: false,
+        httpOnly: true,
+      });
+      const { userId } = this.jwtService.verify(token.accessToken);
 
+      const user = await this.usersService.getUserById(userId);
+      // console.log(user);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Đăng Nhập Thành Công !',
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        userName: user.userName,
+        follow_count: user.follow_count,
+        avatar: user.avatar,
+        accessToken: token.accessToken,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Sai Thông Tin Đăng Nhập !',
+      });
+    }
+  }
   @Post('/auth/refresh')
-  @UseGuards(JwtGuard)
   async refreshToken(@Req() request, @Res() res: Response) {
     let refreshToken = request.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'no token' });
     }
-    const token = await this.jwtService.sign(request.user._id);
-    const user: any = await this.usersService.generateRefreshToken(
-      request.user._id,
-    );
-    refreshToken = user.refreshToken;
+    const { user_id } = this.jwtService.verify(refreshToken);
+    const user: any = await this.usersService.getUserById(user_id);
+    const payload = { email: user.email, user_id: user._id };
+    const token = await this.jwtService.sign(payload, { expiresIn: '30s' });
+    // console.log(user);
+    // refreshToken = user.refreshToken;
 
     const tomorrow = new Date();
     tomorrow.setDate(new Date().getDate() + 1);
@@ -107,7 +140,7 @@ export class UsersController {
       secure: false,
       httpOnly: true,
     });
-    return res.status(HttpStatus.OK).json(refreshToken);
+    return res.status(HttpStatus.OK).json({ accessToken: token });
   }
 
   @Post('/auth/logout')
@@ -115,9 +148,13 @@ export class UsersController {
   async logOut(@Req() request, @Res() res: Response) {
     try {
       res.clearCookie('refreshToken');
-      return res.status(HttpStatus.OK).json({ message: 'logged out' });
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Đăng Xuất Thành Công !' });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Đăng Xuất Thất Bại !' });
     }
   }
 
@@ -137,10 +174,21 @@ export class UsersController {
         session,
       );
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(user);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Cập Nhật Thông Tin Người Dùng Thành Công !',
+        userName: user.userName,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        follow_count: user.follow_count,
+      });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Cập Nhật Thông Tin Người Dùng Thất Bại !',
+      });
     } finally {
       session.endSession();
     }
@@ -164,10 +212,16 @@ export class UsersController {
         session,
       );
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(user);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Cập Nhật Avatar Thành Công !',
+        avatar: user.avatar,
+      });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Cập Nhật Avatar Thất Bại !' });
     } finally {
       session.endSession();
     }
@@ -183,10 +237,12 @@ export class UsersController {
       await session.commitTransaction();
       return res
         .status(HttpStatus.OK)
-        .json({ data: user, message: 'succesfully deleted' });
+        .json({ data: user, message: 'Xóa Người Dùng Thành Công !' });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'Xóa Người Dùng Thất Bại !' });
     } finally {
       session.endSession();
     }
