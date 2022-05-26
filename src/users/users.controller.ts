@@ -85,17 +85,17 @@ export class UsersController {
   }
 
   @Post('/auth/refresh')
-  @UseGuards(JwtGuard)
   async refreshToken(@Req() request, @Res() res: Response) {
     let refreshToken = request.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'no token' });
     }
-    const token = await this.jwtService.sign(request.user._id);
-    const user: any = await this.usersService.generateRefreshToken(
-      request.user._id,
-    );
-    refreshToken = user.refreshToken;
+    const { user_id } = this.jwtService.verify(refreshToken);
+    const user: any = await this.usersService.getUserById(user_id);
+    const payload = { email: user.email, user_id: user._id };
+    const token = await this.jwtService.sign(payload, { expiresIn: '30s' });
+    // console.log(user);
+    // refreshToken = user.refreshToken;
 
     const tomorrow = new Date();
     tomorrow.setDate(new Date().getDate() + 1);
@@ -107,7 +107,7 @@ export class UsersController {
       secure: false,
       httpOnly: true,
     });
-    return res.status(HttpStatus.OK).json(refreshToken);
+    return res.status(HttpStatus.OK).json({ accessToken: token });
   }
 
   @Post('/auth/logout')
