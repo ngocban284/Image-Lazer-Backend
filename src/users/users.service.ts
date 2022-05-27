@@ -63,9 +63,17 @@ export class UsersService {
   async updateAvatar(
     user_id: Types.ObjectId,
     avatar: string,
+    avatar_height: number,
+    avatar_width: number,
     session: ClientSession,
   ) {
-    return await this.userRepository.updateAvatar(user_id, avatar, session);
+    return await this.userRepository.updateAvatar(
+      user_id,
+      avatar,
+      avatar_height,
+      avatar_width,
+      session,
+    );
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {

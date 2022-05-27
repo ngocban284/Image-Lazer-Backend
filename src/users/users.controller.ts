@@ -24,6 +24,7 @@ import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../config/multer.config';
+import * as sizeOf from 'image-size';
 
 @Controller('users')
 export class UsersController {
@@ -212,16 +213,23 @@ export class UsersController {
     session.startTransaction();
     try {
       const avatarHash = avatar.filename;
+      const demension = sizeOf.imageSize(`./uploads/${avatarHash}`);
+      // console.log(demension.height, demension.width);
       const user = await this.usersService.updateAvatar(
         user_id,
         avatarHash,
+        demension.height,
+        demension.width,
         session,
       );
+
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Cập Nhật Avatar Thành Công !',
         avatar: user.avatar,
+        avatar_height: user.avatar_height,
+        avatar_width: user.avatar_width,
       });
     } catch {
       await session.abortTransaction();

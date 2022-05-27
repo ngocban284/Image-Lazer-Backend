@@ -27,6 +27,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../config/multer.config';
+import * as sizeOf from 'image-size';
 
 @Controller('posts')
 export class PostsController {
@@ -54,9 +55,12 @@ export class PostsController {
     session.startTransaction();
 
     try {
+      const demensions = sizeOf.imageSize(`./uploads/${photo.filename}`);
       const post = await this.postsService.createPost(
         request.user._id,
         photo.filename,
+        demensions.height,
+        demensions.width,
         postDto,
         session,
       );

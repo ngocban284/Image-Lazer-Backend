@@ -16,12 +16,16 @@ export class PostsService {
   async createPost(
     user_id: Types.ObjectId,
     photo_url: string,
+    photo_height: number,
+    photo_width: number,
     postDto: CreatePostDto,
     session: ClientSession,
   ) {
     return await this.postRepository.createPost(
       user_id,
       photo_url,
+      photo_height,
+      photo_width,
       postDto,
       session,
     );

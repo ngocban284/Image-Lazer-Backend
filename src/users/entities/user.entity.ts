@@ -32,6 +32,12 @@ export class User extends Document {
   })
   avatar: string;
 
+  @Prop({ required: false })
+  avatar_height: number;
+
+  @Prop({ required: false })
+  avatar_width: number;
+
   @Prop({ required: false, default: 0 })
   following_count: number;
 

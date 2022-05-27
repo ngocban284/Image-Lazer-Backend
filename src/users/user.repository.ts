@@ -145,6 +145,8 @@ export class UserRepository {
   async updateAvatar(
     user_id: Types.ObjectId,
     avatar: string,
+    avatar_height: number,
+    avatar_width: number,
     session: ClientSession,
   ) {
     try {
@@ -152,14 +154,16 @@ export class UserRepository {
         { _id: user_id },
         {
           avatar: avatar,
+          avatar_height: avatar_height,
+          avatar_width: avatar_width,
         },
-        { new: true },
+        { new: true, session },
       );
+
       if (!user) {
         throw new NotFoundException();
       }
 
-      await user.save({ session });
       return user;
     } catch {
       throw new InternalServerErrorException();
