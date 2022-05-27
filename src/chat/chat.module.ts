@@ -33,6 +33,6 @@ import { AuthSocketMiddleware } from './authSocket.middleware';
 })
 export class ChatModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthSocketMiddleware).forRoutes('/users/auth/signin');
+    consumer.apply(AuthSocketMiddleware).forRoutes('*');
   }
 }
