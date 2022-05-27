@@ -1,3 +1,4 @@
+import { CommentsGateway } from './comments/comments.gateway';
 import { ConfigModule } from './config/config.module';
 import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
@@ -7,9 +8,11 @@ import { SavePostsModule } from './savePosts/saveposts.module';
 import { FollowsModule } from './follows/follows.module';
 import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
+import { ChatModule } from './chat/chat.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from './config/config.service';
-import { ChatModule } from './chat/chat.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -22,11 +25,12 @@ import { ChatModule } from './chat/chat.module';
     UsersModule,
     CommentsModule,
     FollowsModule,
+    ChatModule,
     PostsModule,
     LikesModule,
     AlbumsModule,
     SavePostsModule,
-    ChatModule,
+    ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'uploads') }),
   ],
   providers: [],
   controllers: [],

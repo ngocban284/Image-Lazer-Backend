@@ -19,18 +19,6 @@ export class FollowsService {
     return await this.followRepository.followUser(user_id, followDto, session);
   }
 
-  async unfollowUser(
-    user_id: Types.ObjectId,
-    followDto: FollowDto,
-    session: ClientSession,
-  ) {
-    return await this.followRepository.unfollowUser(
-      user_id,
-      followDto,
-      session,
-    );
-  }
-
   async followedUser(user_id: Types.ObjectId) {
     return await this.followRepository.followedUser(user_id);
   }

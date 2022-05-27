@@ -33,6 +33,12 @@ export class Post extends Document {
   photo_url: string;
 
   @Prop({ required: false })
+  photo_height: number;
+
+  @Prop({ required: false })
+  photo_width: number;
+
+  @Prop({ required: false })
   description: string;
 
   @Prop({ required: false })

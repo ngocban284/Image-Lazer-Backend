@@ -2,17 +2,21 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersService } from './users.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema, User } from './entities/user.entity';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UsersController } from './users.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtStrategy } from './jwt/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { PostsModule } from 'src/posts/posts.module';
+import { AlbumsModule } from 'src/albums/albums.module';
 
 @Module({
   imports: [
     ConfigModule,
+    forwardRef(() => PostsModule),
+    AlbumsModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({

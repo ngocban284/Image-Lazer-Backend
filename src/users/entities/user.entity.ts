@@ -10,6 +10,9 @@ export class User extends Document {
   @Prop({ required: true })
   fullName: string;
 
+  @Prop({ required: true })
+  age: number;
+
   @Prop({ required: true, unique: true })
   email: string;
 
@@ -29,8 +32,17 @@ export class User extends Document {
   })
   avatar: string;
 
+  @Prop({ required: false })
+  avatar_height: number;
+
+  @Prop({ required: false })
+  avatar_width: number;
+
   @Prop({ required: false, default: 0 })
-  follow_count: number;
+  following_count: number;
+
+  @Prop({ required: false, default: 0 })
+  follower_count: number;
 
   @Prop({ required: false })
   refreshToken: string;

@@ -8,7 +8,7 @@ import { PostsService } from './posts.service';
 import { PostRepository } from './posts.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Post, PostSchema } from './entities/post.entity';
-import { UsersModule } from 'src/users/users.module';
+
 import { FollowsModule } from 'src/follows/follows.module';
 import { LikesModule } from 'src/likes/likes.module';
 import { CommentsModule } from 'src/comments/comments.module';
@@ -17,7 +17,6 @@ import { CommentsModule } from 'src/comments/comments.module';
   imports: [
     MongooseModule.forFeature([{ name: Post.name, schema: PostSchema }]),
     FollowsModule,
-    // UsersModule,
     LikesModule,
     CommentsModule,
   ],

@@ -30,6 +30,10 @@ export class UsersService {
     return await this.userRepository.getUserById(id);
   }
 
+  async getUserByUserName(userName: string) {
+    return await this.userRepository.getUserByUserName(userName);
+  }
+
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
     return await this.userRepository.createUser(createUserDto, session);
   }
@@ -54,6 +58,22 @@ export class UsersService {
     session: ClientSession,
   ) {
     return await this.userRepository.updateUser(id, updateUserDto, session);
+  }
+
+  async updateAvatar(
+    user_id: Types.ObjectId,
+    avatar: string,
+    avatar_height: number,
+    avatar_width: number,
+    session: ClientSession,
+  ) {
+    return await this.userRepository.updateAvatar(
+      user_id,
+      avatar,
+      avatar_height,
+      avatar_width,
+      session,
+    );
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {

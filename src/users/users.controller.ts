@@ -10,6 +10,8 @@ import {
   Post,
   Patch,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection, Types } from 'mongoose';
@@ -20,6 +22,9 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
 import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../config/multer.config';
+import * as sizeOf from 'image-size';
 
 @Controller('users')
 export class UsersController {
@@ -36,16 +41,35 @@ export class UsersController {
     return res.status(HttpStatus.OK).json(users);
   }
 
-  @Get('/:id')
-  @UseGuards(JwtGuard)
-  async getUserById(
-    @Param('id') id: Types.ObjectId,
-    @Req() request,
+  @Get('/:user_name')
+  async getUserByUserName(
+    @Param('user_name') user_name: string,
     @Res() res: Response,
   ) {
     // console.log(request.user);
-    const user = await this.usersService.getUserById(id);
-    return res.status(HttpStatus.OK).json(user);
+    try {
+      const { user, createdImages, albums } =
+        await this.usersService.getUserByUserName(user_name);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Lấy Thông Tin Người Dùng Thành Công !',
+        userName: user.userName,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        avatar_height: user.avatar_height,
+        avatar_width: user.avatar_width,
+        following_count: user.following_count,
+        follwer_count: user.follwer_count,
+        createdImages,
+        albums,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Người Dùng Không Tồn Tại !',
+      });
+    }
   }
 
   @Post('/auth/signup')
@@ -67,31 +91,54 @@ export class UsersController {
 
   @Post('/auth/signin')
   async signIn(@Body() logInUserDto: LogInUserDto, @Res() res: Response) {
-    const token = await this.usersService.login(logInUserDto);
-    const tomorrow = new Date();
-    tomorrow.setDate(new Date().getDate() + 1);
-    res.header('Authorization', token.accessToken);
-    res.cookie('refreshToken', token.refreshToken, {
-      expires: tomorrow,
-      sameSite: 'strict',
-      secure: false,
-      httpOnly: true,
-    });
-    return res.status(HttpStatus.OK).json(token);
-  }
+    try {
+      const token = await this.usersService.login(logInUserDto);
+      const tomorrow = new Date();
+      tomorrow.setDate(new Date().getDate() + 1);
+      res.header('Authorization', token.accessToken);
+      res.cookie('refreshToken', token.refreshToken, {
+        expires: tomorrow,
+        sameSite: 'strict',
+        secure: false,
+        httpOnly: true,
+      });
+      const { userId } = this.jwtService.verify(token.accessToken);
 
+      const user = await this.usersService.getUserById(userId);
+      // console.log(user);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Đăng Nhập Thành Công !',
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        userName: user.userName,
+        following_count: user.following_count,
+        follwer_count: user.follwer_count,
+        avatar: user.avatar,
+        avatar_height: user.avatar_height,
+        avatar_width: user.avatar_width,
+        accessToken: token.accessToken,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Sai Thông Tin Đăng Nhập !',
+      });
+    }
+  }
   @Post('/auth/refresh')
-  @UseGuards(JwtGuard)
   async refreshToken(@Req() request, @Res() res: Response) {
     let refreshToken = request.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(HttpStatus.UNAUTHORIZED).json({ message: 'no token' });
     }
-    const token = await this.jwtService.sign(request.user._id);
-    const user: any = await this.usersService.generateRefreshToken(
-      request.user._id,
-    );
-    refreshToken = user.refreshToken;
+    const { user_id } = this.jwtService.verify(refreshToken);
+    const user: any = await this.usersService.getUserById(user_id);
+    const payload = { email: user.email, user_id: user._id };
+    const token = await this.jwtService.sign(payload, { expiresIn: '30s' });
+    // console.log(user);
+    // refreshToken = user.refreshToken;
 
     const tomorrow = new Date();
     tomorrow.setDate(new Date().getDate() + 1);
@@ -103,7 +150,7 @@ export class UsersController {
       secure: false,
       httpOnly: true,
     });
-    return res.status(HttpStatus.OK).json(refreshToken);
+    return res.status(HttpStatus.OK).json({ accessToken: token });
   }
 
   @Post('/auth/logout')
@@ -111,9 +158,13 @@ export class UsersController {
   async logOut(@Req() request, @Res() res: Response) {
     try {
       res.clearCookie('refreshToken');
-      return res.status(HttpStatus.OK).json({ message: 'logged out' });
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Đăng Xuất Thành Công !' });
     } catch (error) {
-      return res.status(HttpStatus.BAD_REQUEST).json(error);
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Đăng Xuất Thất Bại !' });
     }
   }
 
@@ -133,10 +184,64 @@ export class UsersController {
         session,
       );
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(user);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Cập Nhật Thông Tin Người Dùng Thành Công !',
+        userName: user.userName,
+        fullName: user.fullName,
+        email: user.email,
+        avatar: user.avatar,
+        avatar_height: user.avatar_height,
+        avatar_width: user.avatar_width,
+        following_count: user.following_count,
+        follwer_count: user.follwer_count,
+      });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Cập Nhật Thông Tin Người Dùng Thất Bại !',
+      });
+    } finally {
+      session.endSession();
+    }
+  }
+
+  @Patch('/upload/:user_id')
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('avatar', multerOptions))
+  async uploadAvatar(
+    @Param('user_id') user_id: Types.ObjectId,
+    @UploadedFile() avatar,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+    try {
+      const avatarHash = avatar.filename;
+      const demension = sizeOf.imageSize(`./uploads/${avatarHash}`);
+      // console.log(demension.height, demension.width);
+      const user = await this.usersService.updateAvatar(
+        user_id,
+        avatarHash,
+        demension.height,
+        demension.width,
+        session,
+      );
+
+      await session.commitTransaction();
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Cập Nhật Avatar Thành Công !',
+        avatar: user.avatar,
+        avatar_height: user.avatar_height,
+        avatar_width: user.avatar_width,
+      });
+    } catch {
+      await session.abortTransaction();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Cập Nhật Avatar Thất Bại !' });
     } finally {
       session.endSession();
     }
@@ -152,10 +257,12 @@ export class UsersController {
       await session.commitTransaction();
       return res
         .status(HttpStatus.OK)
-        .json({ data: user, message: 'succesfully deleted' });
+        .json({ data: user, message: 'Xóa Người Dùng Thành Công !' });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ message: 'Xóa Người Dùng Thất Bại !' });
     } finally {
       session.endSession();
     }

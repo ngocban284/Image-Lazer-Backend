@@ -10,12 +10,16 @@ import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthSocketMiddleware } from './authSocket.middleware';
+import { PostsModule } from '../posts/posts.module';
+import { AlbumsModule } from '../albums/albums.module';
 
 @Module({
   imports: [
     ConversationModule,
     MessageModule,
     UsersModule,
+    PostsModule,
+    AlbumsModule,
     FollowsModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
