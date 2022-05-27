@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  forwardRef,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,10 +10,15 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
+import { Post } from 'src/posts/entities/post.entity';
+import { Album } from 'src/albums/entities/album.entity';
+import { Inject } from '@nestjs/common';
 
 export class UserRepository {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Post.name) private readonly postModel: Model<Post>,
+    @InjectModel(Album.name) private readonly albumModel: Model<Album>,
   ) {}
 
   async getAllUsers() {
@@ -50,12 +56,35 @@ export class UserRepository {
 
   async getUserByUserName(userName: string) {
     let user;
+    let postOfUser;
+    let createdImages = [];
+    let nameAlbums = [];
+    let imageAlbums = [];
+    let albumsOfUser;
+    let albums = [];
     try {
       user = await this.userModel.findOne({ userName });
+      postOfUser = await this.postModel.find({ user_id: user._id });
+      postOfUser.map((post) => {
+        createdImages.push(post.photo_url);
+      });
+      albumsOfUser = await this.albumModel
+        .find({ user_id: user._id })
+        .populate('post_id');
+
+      albumsOfUser.map((album) => {
+        nameAlbums.push(album.name);
+        imageAlbums.push(album.post_id[album.post_id.length - 1].photo_url);
+        albums.push({
+          id: album._id,
+          name: album.name,
+          image: album.post_id[album.post_id.length - 1].photo_url,
+        });
+      });
     } catch {
       throw new InternalServerErrorException();
     }
-    return user;
+    return { user, createdImages, albums };
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {

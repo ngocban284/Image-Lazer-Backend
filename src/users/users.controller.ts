@@ -47,7 +47,8 @@ export class UsersController {
   ) {
     // console.log(request.user);
     try {
-      const user = await this.usersService.getUserByUserName(user_name);
+      const { user, createdImages, albums } =
+        await this.usersService.getUserByUserName(user_name);
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy Thông Tin Người Dùng Thành Công !',
@@ -57,6 +58,8 @@ export class UsersController {
         avatar: user.avatar,
         following_count: user.following_count,
         follwer_count: user.follwer_count,
+        createdImages,
+        albums,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
