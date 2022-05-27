@@ -41,8 +41,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatar?: string;
-
-  @IsOptional()
-  @IsNumber()
-  follow_count?: number;
 }

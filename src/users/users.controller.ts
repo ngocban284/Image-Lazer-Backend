@@ -55,7 +55,7 @@ export class UsersController {
         fullName: user.fullName,
         email: user.email,
         avatar: user.avatar,
-        follow_count: user.follow_count,
+        following_count: user.following_count,
         follwer_count: user.follwer_count,
       });
     } catch (error) {
@@ -107,7 +107,7 @@ export class UsersController {
         email: user.email,
         fullName: user.fullName,
         userName: user.userName,
-        follow_count: user.follow_count,
+        following_count: user.following_count,
         follwer_count: user.follwer_count,
         avatar: user.avatar,
         accessToken: token.accessToken,
@@ -183,7 +183,7 @@ export class UsersController {
         fullName: user.fullName,
         email: user.email,
         avatar: user.avatar,
-        follow_count: user.follow_count,
+        following_count: user.following_count,
         follwer_count: user.follwer_count,
       });
     } catch {

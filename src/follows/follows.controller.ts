@@ -53,7 +53,7 @@ export class FollowsController {
     }
   }
 
-  // xem 1 nguoi co bao nhieu nguoi theo doi
+  // xem 1 nguoi duoc bao nhieu nguoi theo doi
   @Get('followed/:user_id')
   async followedUser(
     @Param('user_id') user_id: Types.ObjectId,
@@ -63,7 +63,7 @@ export class FollowsController {
     return res.status(HttpStatus.OK).json(list);
   }
 
-  // xem co bao nhieu nguoi theo doi minh
+  // xem 1 nguoi theo doi bao nhieu nguoi
   @Get('followedBy/:user_id')
   async followedByUser(
     @Param('user_id') user_id: Types.ObjectId,

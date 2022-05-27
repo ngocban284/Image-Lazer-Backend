@@ -33,7 +33,7 @@ export class User extends Document {
   avatar: string;
 
   @Prop({ required: false, default: 0 })
-  follow_count: number;
+  following_count: number;
 
   @Prop({ required: false, default: 0 })
   follower_count: number;
