@@ -79,11 +79,14 @@ export class UserRepository {
           id: album._id,
           name: album.name,
           image: album.post_id[album.post_id.length - 1].photo_url,
+          photo_height: album.post_id[album.post_id.length - 1].photo_height,
+          photo_width: album.post_id[album.post_id.length - 1].photo_width,
         });
       });
     } catch {
       throw new InternalServerErrorException();
     }
+    // return albumsOfUser;
     return { user, createdImages, albums };
   }
 
