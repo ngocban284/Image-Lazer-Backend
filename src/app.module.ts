@@ -10,6 +10,8 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from './users/users.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigService } from './config/config.service';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -26,6 +28,7 @@ import { ConfigService } from './config/config.service';
     LikesModule,
     AlbumsModule,
     SavePostsModule,
+    ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'uploads') }),
   ],
   providers: [],
   controllers: [],
