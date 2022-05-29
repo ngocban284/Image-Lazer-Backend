@@ -46,13 +46,17 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findById({ _id: albumDto.album_id });
+      console.log('albumDto', albumDto);
+      let album = await this.albumModel.findById({
+        _id: albumDto.album_id + '',
+      });
 
       if (albumDto.post_id) {
         let updateAlbum = await this.albumModel.findByIdAndUpdate(
           { _id: album._id },
           { $push: { post_id: albumDto.post_id } },
         );
+
         updateAlbum = await this.albumModel
           .findById({ _id: updateAlbum._id })
           .populate('post_id');

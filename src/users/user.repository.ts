@@ -65,8 +65,9 @@ export class UserRepository {
     try {
       user = await this.userModel.findOne({ userName });
       postOfUser = await this.postModel.find({ user_id: user._id });
+
       postOfUser.map((post) => {
-        createdImages.push(post.photo_url);
+        createdImages.push(post.image);
       });
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id })
@@ -74,13 +75,13 @@ export class UserRepository {
 
       albumsOfUser.map((album) => {
         nameAlbums.push(album.name);
-        imageAlbums.push(album.post_id[album.post_id.length - 1].photo_url);
+        imageAlbums.push(album.post_id[album.post_id.length - 1].image);
         albums.push({
           id: album._id,
           name: album.name,
-          image: album.post_id[album.post_id.length - 1].photo_url,
-          photo_height: album.post_id[album.post_id.length - 1].photo_height,
-          photo_width: album.post_id[album.post_id.length - 1].photo_width,
+          image: album.post_id[album.post_id.length - 1].image,
+          image_height: album.post_id[album.post_id.length - 1].image_height,
+          image_width: album.post_id[album.post_id.length - 1].image_width,
         });
       });
     } catch {

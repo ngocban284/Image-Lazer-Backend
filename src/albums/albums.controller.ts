@@ -99,28 +99,15 @@ export class AlbumsController {
     // console.log(albumDto);
 
     try {
-      if (albumDto.image) {
-        const album = await this.albumService.addPostToAlbum(
-          request.user._id,
-          albumDto,
-          session,
-        );
-
-        await session.commitTransaction();
-        return res
-          .status(HttpStatus.OK)
-          .json({ message: 'Đã thêm ảnh vào album !', album });
-      } else {
-        const album = await this.albumService.addPostToAlbum(
-          request.user._id,
-          albumDto,
-          session,
-        );
-        await session.commitTransaction();
-        return res
-          .status(HttpStatus.OK)
-          .json({ message: 'Đã thêm ảnh vào album !', album });
-      }
+      const album = await this.albumService.addPostToAlbum(
+        request.user._id,
+        albumDto,
+        session,
+      );
+      await session.commitTransaction();
+      return res
+        .status(HttpStatus.OK)
+        .json({ message: 'Đã thêm ảnh vào album !', album });
     } catch {
       await session.abortTransaction();
       return res
