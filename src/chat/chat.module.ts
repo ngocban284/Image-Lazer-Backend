@@ -37,6 +37,6 @@ import { AlbumsModule } from '../albums/albums.module';
 })
 export class ChatModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthSocketMiddleware).forRoutes('*');
+    consumer.apply(AuthSocketMiddleware).forRoutes('/auth/signin');
   }
 }

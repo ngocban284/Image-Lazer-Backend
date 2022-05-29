@@ -21,7 +21,7 @@ export class MessageGateway {
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage('direct-message')
+  @SubscribeMessage('directMessage')
   directMessage(
     @MessageBody() data: DirectMessageDto,
     @ConnectedSocket() client: Socket,
@@ -29,7 +29,7 @@ export class MessageGateway {
     this.messageService.directMessageHandler(client, data);
   }
 
-  @SubscribeMessage('direct-chat-history')
+  @SubscribeMessage('directChatHistory')
   directChatHistory(
     @MessageBody() data: DirectChatHistoryDto,
     @ConnectedSocket() client: Socket,

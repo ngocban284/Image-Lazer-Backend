@@ -100,7 +100,7 @@ export class UsersController {
         expires: tomorrow,
         sameSite: 'strict',
         secure: false,
-        httpOnly: true,
+        httpOnly: false,
       });
       const { userId } = this.jwtService.verify(token.accessToken);
 
@@ -148,7 +148,7 @@ export class UsersController {
       expires: tomorrow,
       sameSite: 'strict',
       secure: false,
-      httpOnly: true,
+      httpOnly: false,
     });
     return res.status(HttpStatus.OK).json({ accessToken: token });
   }

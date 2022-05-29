@@ -108,7 +108,7 @@ export class MessageService {
         populate: {
           path: 'author',
           model: User.name,
-          select: 'userName _id',
+          select: 'email _id',
         },
       });
 
@@ -116,7 +116,7 @@ export class MessageService {
       const io = this.chatGateway.getSocketServerInstance();
 
       if (toSpecifiedSocketId) {
-        return io.to(toSpecifiedSocketId).emit('direct-chat-history', {
+        return io.to(toSpecifiedSocketId).emit('directChatHistory', {
           messages: conversation.messages,
           participants: conversation.participants,
         });
@@ -128,7 +128,7 @@ export class MessageService {
         );
 
         activeConnections.forEach((clientId) => {
-          io.to(clientId).emit('direct-chat-history', {
+          io.to(clientId).emit('directChatHistory', {
             messages: conversation.messages,
             participants: conversation.participants,
           });
