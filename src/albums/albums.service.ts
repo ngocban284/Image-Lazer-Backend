@@ -29,17 +29,11 @@ export class AlbumsService {
   async addPostToAlbum(
     user_id: Types.ObjectId,
     albumDto: AddPostToAlbumDto,
-    photo_url: string,
-    photo_height: number,
-    photo_width: number,
     session: ClientSession,
   ) {
     return await this.albumRepository.addPostToAlbum(
       user_id,
       albumDto,
-      photo_url,
-      photo_height,
-      photo_width,
       session,
     );
   }

@@ -15,22 +15,25 @@ export class AddPostToAlbumDto {
   post_id: Types.ObjectId;
 
   @IsString()
-  description_post: string;
+  description: string;
 
   @IsString()
-  website_post: string;
+  link: string;
 
   @IsString()
-  tags_post: string;
+  topic: string;
 
   @IsString()
-  fileName: string;
+  image: string;
 
   @IsNumber()
-  photo_height: number;
+  image_height: number;
 
   @IsNumber()
-  photo_width: number;
+  image_width: number;
+
+  @IsString()
+  title: string;
 }
 
 // export class CreatePostDto {

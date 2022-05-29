@@ -42,12 +42,30 @@ export class PostsController {
     res.status(HttpStatus.OK).json(posts);
   }
 
+  @Post('uploadPostImage')
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async uploadPostImage(@UploadedFile() image, @Res() res: Response) {
+    if (!image) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'No file uploaded',
+      });
+    } else {
+      let dimensions = sizeOf.imageSize(`./uploads/${image.filename}`);
+
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Up load ảnh thành công',
+        image: image.filename,
+        image_height: dimensions.height,
+        image_with: dimensions.width,
+      });
+    }
+  }
+
   @Post()
   @UseGuards(JwtGuard)
-  @UseInterceptors(FileInterceptor('photo', multerOptions))
   async createPost(
     @Body() postDto: CreatePostDto,
-    @UploadedFile() photo,
     @Req() request,
     @Res() res: Response,
   ) {
@@ -55,12 +73,8 @@ export class PostsController {
     session.startTransaction();
 
     try {
-      const demensions = sizeOf.imageSize(`./uploads/${photo.filename}`);
       const post = await this.postsService.createPost(
         request.user._id,
-        photo.filename,
-        demensions.height,
-        demensions.width,
         postDto,
         session,
       );

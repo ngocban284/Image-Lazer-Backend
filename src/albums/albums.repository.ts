@@ -43,9 +43,6 @@ export class AlbumRepository {
   async addPostToAlbum(
     user_id: Types.ObjectId,
     albumDto: AddPostToAlbumDto,
-    photo_url: string,
-    photo_height: number,
-    photo_width: number,
     session: ClientSession,
   ) {
     try {
@@ -81,15 +78,17 @@ export class AlbumRepository {
       } else {
         // create new post
         let postDto = {
-          description: albumDto.description_post,
-          website: albumDto.website_post,
-          tags: albumDto.tags_post,
+          album: album.name,
+          image: albumDto.image,
+          image_height: albumDto.image_height,
+          image_width: albumDto.image_width,
+          description: albumDto.description,
+          title: albumDto.title,
+          link: albumDto.link,
+          topic: albumDto.topic,
         };
         let post = await this.postRepository.createPost(
           user_id,
-          photo_url,
-          photo_height,
-          photo_width,
           postDto,
           session,
         );

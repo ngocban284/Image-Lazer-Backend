@@ -2,7 +2,7 @@
 https://docs.nestjs.com/modules
 */
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { PostsController } from './posts.controller';
 import { PostsService } from './posts.service';
 import { PostRepository } from './posts.repository';
@@ -12,6 +12,7 @@ import { Post, PostSchema } from './entities/post.entity';
 import { FollowsModule } from 'src/follows/follows.module';
 import { LikesModule } from 'src/likes/likes.module';
 import { CommentsModule } from 'src/comments/comments.module';
+import { AlbumsModule } from 'src/albums/albums.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { CommentsModule } from 'src/comments/comments.module';
     FollowsModule,
     LikesModule,
     CommentsModule,
+    forwardRef(() => AlbumsModule),
   ],
   controllers: [PostsController],
   providers: [PostsService, PostRepository],

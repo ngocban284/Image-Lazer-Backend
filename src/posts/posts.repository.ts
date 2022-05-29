@@ -9,6 +9,7 @@ import { Post } from './entities/post.entity';
 import { Follow } from 'src/follows/entities/follow.entity';
 import { Like } from 'src/likes/entities/like.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { Album } from 'src/albums/entities/album.entity';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { GetPostDto } from './dto/getPost.dto';
@@ -20,6 +21,7 @@ export class PostRepository {
     @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
     @InjectModel(Like.name) private readonly likeModel: Model<Like>,
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
+    @InjectModel(Album.name) private readonly albumModel: Model<Album>,
   ) {}
 
   async attachFollower(user_id: Types.ObjectId) {
@@ -69,19 +71,23 @@ export class PostRepository {
 
   async createPost(
     user_id: Types.ObjectId,
-    photo_url: string,
-    photo_height: number,
-    photo_width: number,
     postDto: CreatePostDto,
     session: ClientSession,
   ) {
     try {
+      let album = await this.albumModel.findOne({
+        and: [{ name: postDto.album }, { user_id: user_id }],
+      });
       let post = new this.postModel({
-        ...postDto,
         user_id: user_id,
-        photo_url: photo_url,
-        photo_height: photo_height,
-        photo_width: photo_width,
+        album_id: album._id,
+        image: postDto.image,
+        image_height: postDto.image_height,
+        image_width: postDto.image_width,
+        description: postDto.description,
+        link: postDto.link,
+        title: postDto.title,
+        topic: postDto.topic,
       });
       await post.save({ session: session });
       return post;

@@ -99,13 +99,10 @@ export class AlbumsController {
     // console.log(albumDto);
 
     try {
-      if (albumDto.fileName) {
+      if (albumDto.image) {
         const album = await this.albumService.addPostToAlbum(
           request.user._id,
           albumDto,
-          albumDto.fileName,
-          albumDto.photo_height,
-          albumDto.photo_width,
           session,
         );
 
@@ -117,9 +114,6 @@ export class AlbumsController {
         const album = await this.albumService.addPostToAlbum(
           request.user._id,
           albumDto,
-          '',
-          0,
-          0,
           session,
         );
         await session.commitTransaction();
