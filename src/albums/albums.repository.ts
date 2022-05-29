@@ -1,33 +1,57 @@
 import {
   ConflictException,
+  forwardRef,
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Types, ClientSession, Model } from 'mongoose';
-import { Album } from './entities/album.entity';
-import { SavePost } from 'src/savePosts/entities/savepost.entity';
-import { CreateAlbumDto } from './dto/createAlbum.dto';
+import { AddPostToAlbumDto } from './dto/addPostToAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
+import { CreateAlbumDto } from './dto/createAlbum.dto';
+import { Album } from './entities/album.entity';
+import { SavePost } from 'src/savePosts/entities/savepost.entity';
+import { PostRepository } from 'src/posts/posts.repository';
 
 export class AlbumRepository {
   constructor(
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
+    private readonly postRepository: PostRepository,
   ) {}
 
   async createAlbum(
     user_id: Types.ObjectId,
-    albumDto: CreateAlbumDto,
+    createAlbumDto: CreateAlbumDto,
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { name: albumDto.name }],
+      let album = new this.albumModel({
+        user_id: user_id,
+        name: createAlbumDto.name,
+        description: createAlbumDto.description,
+        secret: createAlbumDto.secret,
       });
+      await album.save({ session: session });
+      return album;
+    } catch (error) {
+      throw new ConflictException();
+    }
+  }
 
-      if (album) {
+  async addPostToAlbum(
+    user_id: Types.ObjectId,
+    albumDto: AddPostToAlbumDto,
+    photo_url: string,
+    photo_height: number,
+    photo_width: number,
+    session: ClientSession,
+  ) {
+    try {
+      let album = await this.albumModel.findById({ _id: albumDto.album_id });
+
+      if (albumDto.post_id) {
         let updateAlbum = await this.albumModel.findByIdAndUpdate(
           { _id: album._id },
           { $push: { post_id: albumDto.post_id } },
@@ -55,38 +79,46 @@ export class AlbumRepository {
           return { updateAlbum };
         }
       } else {
-        let newAlbum = await this.albumModel.create({
-          user_id: user_id,
-          name: albumDto.name,
-          description: albumDto.description,
-        });
-        let updateAlbum = await this.albumModel.findByIdAndUpdate(
-          { _id: newAlbum._id },
-          { $push: { post_id: albumDto.post_id } },
+        // create new post
+        let postDto = {
+          description: albumDto.description_post,
+          website: albumDto.website_post,
+          tags: albumDto.tags_post,
+        };
+        let post = await this.postRepository.createPost(
+          user_id,
+          photo_url,
+          photo_height,
+          photo_width,
+          postDto,
+          session,
         );
-        await updateAlbum.save({ session });
 
-        newAlbum = await this.albumModel
+        let updateAlbum = await this.albumModel.findByIdAndUpdate(
+          { _id: album._id },
+          { $push: { post_id: post._id } },
+        );
+        updateAlbum = await this.albumModel
           .findById({ _id: updateAlbum._id })
           .populate('post_id');
 
         let savepost = await this.savePostModel.findOne({
           $and: [
             { user_id: user_id },
-            { post_id: albumDto.post_id },
-            { album_id: newAlbum._id.toString() },
+            { post_id: post._id },
+            { album_id: album._id },
           ],
         });
         if (savepost) {
-          return newAlbum;
+          return updateAlbum;
         } else {
           savepost = new this.savePostModel({
             user_id: user_id,
-            post_id: albumDto.post_id,
-            album_id: newAlbum._id.toString(),
+            post_id: post._id,
+            album_id: album._id,
           });
           await savepost.save({ session: session });
-          return newAlbum;
+          return { updateAlbum };
         }
       }
     } catch (error) {
