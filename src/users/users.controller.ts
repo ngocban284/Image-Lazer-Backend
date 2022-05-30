@@ -50,10 +50,15 @@ export class UsersController {
     try {
       const { user, createdImages, albums } =
         await this.usersService.getUserByUserName(user_name);
+
+      // console.log(user);
+      // console.log(createdImages);
+      // console.log(albums);
       // const { albumsOfUser } = await this.usersService.getUserByUserName(
       //   user_name,
       // );
-      await this.usersService.getUserByUserName(user_name);
+      // await this.usersService.getUserByUserName(user_name);
+      // console.log('die2');
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy Thông Tin Người Dùng Thành Công !',

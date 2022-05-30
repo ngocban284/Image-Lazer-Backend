@@ -64,31 +64,50 @@ export class UserRepository {
     let albums = [];
     try {
       user = await this.userModel.findOne({ userName });
+      // console.log('user', user);
       postOfUser = await this.postModel.find({ user_id: user._id });
-
+      // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
         createdImages.push(post.image);
       });
+      // console.log('createdImage', createdImages);
+
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id })
         .populate('post_id');
-
+      // console.log('album of user', albumsOfUser);
+      // console.log('createdImage', createdImages);
       albumsOfUser.map((album) => {
+        console.log(album);
         nameAlbums.push(album.name);
-        imageAlbums.push(album.post_id[album.post_id.length - 1].image);
-        albums.push({
-          id: album._id,
-          name: album.name,
-          image: album.post_id[album.post_id.length - 1].image,
-          image_height: album.post_id[album.post_id.length - 1].image_height,
-          image_width: album.post_id[album.post_id.length - 1].image_width,
-        });
+        // console.log(album.post_id.length);
+        if (album.post_id.length >= 1) {
+          imageAlbums.push(album.post_id[album.post_id.length - 1].image);
+          albums.push({
+            id: album._id,
+            name: album.name,
+            image: album.post_id[album.post_id.length - 1].image,
+            image_height: album.post_id[album.post_id.length - 1].image_height,
+            image_width: album.post_id[album.post_id.length - 1].image_width,
+          });
+          // console.log(albums);
+        } else {
+          albums.push({
+            id: album._id,
+            name: album.name,
+            image: null,
+            image_height: null,
+            image_width: null,
+          });
+        }
       });
+      // console.log(imageAlbums);
+      // console.log('createdImage', createdImages);
     } catch {
       throw new InternalServerErrorException();
     }
-    // return albumsOfUser;
     return { user, createdImages, albums };
+    // return albumsOfUser;
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {

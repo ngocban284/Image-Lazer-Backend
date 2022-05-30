@@ -90,7 +90,17 @@ export class PostRepository {
         title: postDto.title,
         topic: postDto.topic,
       });
+
+      album = await this.albumModel.findByIdAndUpdate(
+        {
+          _id: album._id,
+        },
+        { $push: { post_id: post._id } },
+      );
+
       await post.save({ session: session });
+      await album.save({ session: session });
+
       return post;
     } catch {
       throw new InternalServerErrorException();
