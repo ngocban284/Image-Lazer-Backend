@@ -10,6 +10,6 @@ async function bootstrap() {
     prefix: '/uploads',
   });
   app.use(cookieParser());
-  await app.listen(3000);
+  await app.listen(3008);
 }
 bootstrap();
