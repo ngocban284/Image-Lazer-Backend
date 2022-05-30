@@ -13,6 +13,7 @@ import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { Inject } from '@nestjs/common';
+import * as sizeOf from 'image-size';
 
 export class UserRepository {
   constructor(
@@ -68,7 +69,11 @@ export class UserRepository {
       postOfUser = await this.postModel.find({ user_id: user._id });
       // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
-        createdImages.push(post.image);
+        createdImages.push({
+          image: post.image,
+          image_height: post.image_height,
+          image_width: post.image_width,
+        });
       });
       // console.log('createdImage', createdImages);
 
@@ -78,7 +83,7 @@ export class UserRepository {
       // console.log('album of user', albumsOfUser);
       // console.log('createdImage', createdImages);
       albumsOfUser.map((album) => {
-        console.log(album);
+        // console.log(album);
         nameAlbums.push(album.name);
         // console.log(album.post_id.length);
         if (album.post_id.length >= 1) {
