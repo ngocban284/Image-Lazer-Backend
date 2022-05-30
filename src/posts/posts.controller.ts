@@ -34,7 +34,7 @@ export class PostsController {
   constructor(
     @InjectConnection() private readonly connection: Connection,
     private readonly postsService: PostsService,
-  ) {}
+  ) { }
 
   @Get()
   async getPosts(@Body() getPost: GetPostDto, @Res() res: Response) {
@@ -57,7 +57,7 @@ export class PostsController {
         message: 'Up load ảnh thành công',
         image: image.filename,
         image_height: dimensions.height,
-        image_with: dimensions.width,
+        image_width: dimensions.width,
       });
     }
   }
