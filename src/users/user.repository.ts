@@ -20,7 +20,7 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) {}
+  ) { }
 
   async getAllUsers() {
     let users;
@@ -70,9 +70,10 @@ export class UserRepository {
       // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
         createdImages.push({
-          image: post.image,
-          image_height: post.image_height,
-          image_width: post.image_width,
+          name: post.name,
+          src: '/uploads/' + post.image,
+          height: post.image_height,
+          width: post.image_width,
         });
       });
       // console.log('createdImage', createdImages);
@@ -91,9 +92,12 @@ export class UserRepository {
           albums.push({
             id: album._id,
             name: album.name,
-            image: album.post_id[album.post_id.length - 1].image,
-            image_height: album.post_id[album.post_id.length - 1].image_height,
-            image_width: album.post_id[album.post_id.length - 1].image_width,
+            image: {
+              name: album.post_id[album.post_id.length - 1].image,
+              src: '/uploads/' + album.post_id[album.post_id.length - 1].image,
+              height: album.post_id[album.post_id.length - 1].image_height,
+              width: album.post_id[album.post_id.length - 1].image_width,
+            },
           });
           // console.log(albums);
         } else {
