@@ -76,8 +76,9 @@ export class PostRepository {
   ) {
     try {
       let album = await this.albumModel.findOne({
-        and: [{ name: postDto.album }, { user_id: user_id }],
+        $and: [{ user_id: user_id }, { name: postDto.album }],
       });
+
       let post = new this.postModel({
         user_id: user_id,
         album_id: album._id,
