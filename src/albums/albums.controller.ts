@@ -58,7 +58,7 @@ export class AlbumsController {
       await session.abortTransaction();
       res
         .status(HttpStatus.BAD_REQUEST)
-        .json({ errorCode: 1, message: 'Tạo mới Album thất bại !', error });
+        .json({ errorCode: 1, message: 'Album đã tồn tại !', error });
     }
   }
 

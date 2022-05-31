@@ -27,14 +27,22 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      let album = new this.albumModel({
-        user_id: user_id,
-        name: createAlbumDto.name,
-        description: createAlbumDto.description,
-        secret: createAlbumDto.secret,
+      // check album is already exist
+      let album = await this.albumModel.findOne({
+        $and: [{ user_id: user_id }, { name: createAlbumDto.name }],
       });
-      await album.save({ session: session });
-      return album;
+      if (album) {
+        throw new Error('Album is already exist');
+      } else {
+        album = new this.albumModel({
+          user_id: user_id,
+          name: createAlbumDto.name,
+          description: createAlbumDto.description,
+          secret: createAlbumDto.secret,
+        });
+        await album.save({ session: session });
+        return album;
+      }
     } catch (error) {
       throw new ConflictException();
     }
