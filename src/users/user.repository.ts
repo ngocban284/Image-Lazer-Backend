@@ -105,8 +105,6 @@ export class UserRepository {
             id: album._id,
             name: album.name,
             image: null,
-            image_height: null,
-            image_width: null,
           });
         }
       });
