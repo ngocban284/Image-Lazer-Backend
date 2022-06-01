@@ -73,13 +73,13 @@ export class PostsController {
     session.startTransaction();
 
     try {
-      const post = await this.postsService.createPost(
+      const post: any = await this.postsService.createPost(
         request.user._id,
         postDto,
         session,
       );
       await session.commitTransaction();
-      res.status(HttpStatus.OK).json(post);
+      res.status(HttpStatus.OK).json({ errorCode: 0, post });
     } catch {
       await session.abortTransaction();
       throw new Error();

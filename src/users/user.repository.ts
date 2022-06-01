@@ -92,6 +92,8 @@ export class UserRepository {
           albums.push({
             id: album._id,
             name: album.name,
+            description: album.description,
+            secret: album.secret,
             image: {
               name: album.post_id[album.post_id.length - 1].image,
               src: '/uploads/' + album.post_id[album.post_id.length - 1].image,
