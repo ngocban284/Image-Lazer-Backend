@@ -106,7 +106,12 @@ export class UserRepository {
           albums.push({
             id: album._id,
             name: album.name,
-            image: null,
+            image: {
+              name: 'default_avatar_album.png',
+              src: '/uploads/default_avatar_album.png',
+              height: 400,
+              width: 400,
+            },
           });
         }
       });
