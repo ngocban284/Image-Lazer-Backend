@@ -12,6 +12,7 @@ import { Comment } from 'src/comments/entities/comment.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UpdatePostOwnerDto } from './dto/updatePostOwner.dto';
 import { GetPostDto } from './dto/getPost.dto';
 import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 
@@ -152,10 +153,17 @@ export class PostRepository {
     }
   }
 
+  async updatePostOwner(
+    user_id: Types.ObjectId,
+    post_id: Types.ObjectId,
+    updatePostDto: UpdatePostOwnerDto,
+    session: ClientSession,
+  ) {}
+
   async updatePost(
     user_id: Types.ObjectId,
     post_id: Types.ObjectId,
-    updatePostDto: UpdatePostDto,
+    updatePostDto: UpdatePostOwnerDto,
     session: ClientSession,
   ) {
     try {

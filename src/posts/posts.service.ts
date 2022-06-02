@@ -8,6 +8,7 @@ import { PostRepository } from './posts.repository';
 import { CreatePostDto } from './dto/createPost.dto';
 import { GetPostDto } from './dto/getPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UpdatePostOwnerDto } from './dto/updatePostOwner.dto';
 
 @Injectable()
 export class PostsService {
@@ -28,7 +29,7 @@ export class PostsService {
   async updatePost(
     user_id: Types.ObjectId,
     post_id: Types.ObjectId,
-    updatePostDto: UpdatePostDto,
+    updatePostDto: UpdatePostOwnerDto,
     session: ClientSession,
   ) {
     return await this.postRepository.updatePost(

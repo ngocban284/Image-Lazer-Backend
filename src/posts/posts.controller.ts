@@ -21,6 +21,7 @@ import { PostsService } from './posts.service';
 import { GetPostDto } from './dto/getPost.dto';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UpdatePostOwnerDto } from './dto/updatePostOwner.dto';
 import { Response } from 'express';
 import { Types, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -92,7 +93,7 @@ export class PostsController {
   @UseGuards(JwtGuard)
   async updatePost(
     @Param('id') id: Types.ObjectId,
-    @Body() postDto: UpdatePostDto,
+    @Body() postOwnerDto: UpdatePostOwnerDto,
     @Req() request,
     @Res() res: Response,
   ) {
@@ -102,7 +103,7 @@ export class PostsController {
       const post = await this.postsService.updatePost(
         request.user._id,
         id,
-        postDto,
+        postOwnerDto,
         session,
       );
       await session.commitTransaction();

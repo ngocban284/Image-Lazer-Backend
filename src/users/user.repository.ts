@@ -14,13 +14,14 @@ import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { Inject } from '@nestjs/common';
 import * as sizeOf from 'image-size';
+import * as bcrypt from 'bcrypt';
 
 export class UserRepository {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) { }
+  ) {}
 
   async getAllUsers() {
     let users;
@@ -170,6 +171,9 @@ export class UserRepository {
     }
 
     try {
+      if (updateUserDto.password) {
+        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+      }
       user.set(updateUserDto);
       await user.save({ session });
     } catch {

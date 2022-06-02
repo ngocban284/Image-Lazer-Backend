@@ -26,6 +26,7 @@ import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../config/multer.config';
 import * as sizeOf from 'image-size';
+import { request } from 'http';
 
 @Controller('albums')
 export class AlbumsController {
@@ -124,12 +125,10 @@ export class AlbumsController {
     return res.status(HttpStatus.OK).json(album);
   }
 
-  @Get('/users/:user_id')
-  async getAlbumById(
-    @Param('user_id') user_id: Types.ObjectId,
-    @Res() res: Response,
-  ) {
-    const album = await this.albumService.getAlbumByUser(user_id);
+  @Get('/users/')
+  @UseGuards(JwtGuard)
+  async getAlbumById(@Req() request, @Res() res: Response) {
+    const album = await this.albumService.getAlbumByUser(request.user._id);
     return res.status(HttpStatus.OK).json(album);
   }
 
