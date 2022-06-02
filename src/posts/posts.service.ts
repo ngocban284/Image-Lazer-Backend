@@ -26,13 +26,13 @@ export class PostsService {
     return await this.postRepository.getPost(getPost);
   }
 
-  async updatePost(
+  async updatePostOwner(
     user_id: Types.ObjectId,
     post_id: Types.ObjectId,
     updatePostDto: UpdatePostOwnerDto,
     session: ClientSession,
   ) {
-    return await this.postRepository.updatePost(
+    return await this.postRepository.updatePostOwner(
       user_id,
       post_id,
       updatePostDto,

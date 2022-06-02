@@ -100,17 +100,21 @@ export class PostsController {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
-      const post = await this.postsService.updatePost(
+      const post = await this.postsService.updatePostOwner(
         request.user._id,
         id,
         postOwnerDto,
         session,
       );
       await session.commitTransaction();
-      res.status(HttpStatus.OK).json(post);
+      res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Update Ảnh Thành Công', post });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Update Ảnh Thất Bại' });
     } finally {
       session.endSession();
     }

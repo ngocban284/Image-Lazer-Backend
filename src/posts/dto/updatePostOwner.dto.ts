@@ -3,18 +3,18 @@ import { Schema as MongoSchema, Types } from 'mongoose';
 
 export class UpdatePostOwnerDto {
   @IsOptional()
-  album: string;
+  album?: string;
 
   @IsString()
-  description: string;
+  description?: string;
 
   @IsString()
-  link: string;
+  link?: string;
 
   @IsString()
-  title: string;
+  title?: string;
 
   @IsString()
   @IsNotEmpty()
-  topic: string;
+  topic?: string;
 }

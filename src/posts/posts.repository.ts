@@ -79,7 +79,7 @@ export class PostRepository {
       let album = await this.albumModel.findOne({
         $and: [{ user_id: user_id + '' }, { name: postDto.album }],
       });
-      console.log('album', album);
+      // console.log('album', album);
 
       let post = new this.postModel({
         user_id: user_id + '',
@@ -158,34 +158,53 @@ export class PostRepository {
     post_id: Types.ObjectId,
     updatePostDto: UpdatePostOwnerDto,
     session: ClientSession,
-  ) {}
-
-  async updatePost(
-    user_id: Types.ObjectId,
-    post_id: Types.ObjectId,
-    updatePostDto: UpdatePostOwnerDto,
-    session: ClientSession,
   ) {
     try {
-      let post = await this.postModel.findOne({
-        $and: [{ _id: post_id }, { user_id: user_id }],
-      });
-      if (!post) {
-        throw new UnauthorizedException();
+      let post = await this.postModel.findById(post_id);
+      // console.log(post);
+      let album = await this.albumModel.findById(post.album_id);
+
+      console.log(album);
+      let newAlbum;
+      if (post.user_id == user_id) {
+        post = await this.postModel.findByIdAndUpdate(
+          post_id,
+          {
+            $set: {
+              album_id: album._id + '',
+              title: updatePostDto.title,
+              description: updatePostDto.description,
+              link: updatePostDto.link,
+              topic: updatePostDto.topic,
+            },
+          },
+          { session: session, new: true },
+        );
+      } else {
+        post = await this.postModel.findByIdAndUpdate(
+          post_id,
+          {
+            $set: {
+              album_id: album._id + '',
+            },
+          },
+          { session: session, new: true },
+        );
       }
-      await this.postModel.findByIdAndUpdate(post_id, updatePostDto, {
-        session: session,
-      });
-      let updatePost: any = await this.postModel.findByIdAndUpdate(
-        post_id,
-        updatePostDto,
-        { new: true, session: session },
+      // find new album and push post_id
+      newAlbum = await this.albumModel.findOneAndUpdate(
+        { $and: [{ user_id: user_id + '' }, { name: updatePostDto.album }] },
+        { $push: { post_id: post._id } },
+        { session: session, new: true },
       );
-
-      updatePost = await this.attachLikesComments(updatePost);
-
-      return updatePost;
-    } catch {
+      // delete post in old album
+      album = await this.albumModel.findByIdAndUpdate(
+        { _id: album._id },
+        { $pull: { post_id: post_id } },
+        { session: session, new: true },
+      );
+      return post;
+    } catch (error) {
       throw new InternalServerErrorException();
     }
   }
@@ -197,13 +216,30 @@ export class PostRepository {
   ) {
     try {
       let post = await this.postModel.findOne({
-        $and: [{ _id: post_id }, { user_id: user_id }],
+        $and: [{ _id: post_id }, { user_id: user_id + '' }],
       });
       if (!post) {
         throw new UnauthorizedException();
       }
-      await this.postModel.findByIdAndDelete(post_id, { session: session });
-      let postDeleted = await this.postModel.find({}).lean().exec();
+      let postDeleted = await this.postModel.findByIdAndDelete(post_id, {
+        session: session,
+      });
+      // let postDeleted:any = await this.postModel.find({}).lean().exec();
+      //delete post in all album
+      let albums = await this.albumModel.find({
+        user_id: user_id + '',
+        $and: [{ post_id: { $in: [post_id] } }],
+      });
+
+      // delete post id in album
+      for (let i = 0; i < albums.length; i++) {
+        albums[i] = await this.albumModel.findByIdAndUpdate(
+          { _id: albums[i]._id },
+          { $pull: { post_id: post_id } },
+          { session: session, new: true },
+        );
+      }
+
       return postDeleted;
     } catch {
       throw new InternalServerErrorException();

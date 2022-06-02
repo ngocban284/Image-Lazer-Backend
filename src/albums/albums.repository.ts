@@ -29,8 +29,9 @@ export class AlbumRepository {
     try {
       // check album is already exist
       let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { name: createAlbumDto.name }],
+        $and: [{ user_id: user_id + '' }, { name: createAlbumDto.name }],
       });
+      // console.log('album', album);
       if (album) {
         throw new Error('Album is already exist');
       } else {
@@ -54,7 +55,7 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      console.log('albumDto', albumDto);
+      // console.log('albumDto', albumDto);
       let album = await this.albumModel.findById({
         _id: albumDto.album_id + '',
       });
@@ -150,9 +151,9 @@ export class AlbumRepository {
     try {
       let albums = [];
       let albumOfUser: any = await this.albumModel
-        .find({ user_id })
+        .find({ user_id: user_id + '' })
         .populate('post_id');
-
+      // console.log('albumOfUser', albumOfUser);
       albumOfUser.map((album) => {
         let image;
         if (album.post_id.length > 0) {
