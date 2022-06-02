@@ -35,7 +35,7 @@ export class AlbumRepository {
         throw new Error('Album is already exist');
       } else {
         album = new this.albumModel({
-          user_id: user_id,
+          user_id: user_id + '',
           name: createAlbumDto.name,
           description: createAlbumDto.description,
           secret: createAlbumDto.secret,
@@ -148,10 +148,37 @@ export class AlbumRepository {
 
   async getAlbumByUser(user_id: Types.ObjectId) {
     try {
-      let albums = await this.albumModel
+      let albums = [];
+      let albumOfUser: any = await this.albumModel
         .find({ user_id })
-        .populate('post_id')
-        .populate('user_id');
+        .populate('post_id');
+
+      albumOfUser.map((album) => {
+        let image;
+        if (album.post_id.length > 0) {
+          image = {
+            name: album.post_id[album.post_id.length - 1].image,
+            src: `/uploads/${album.post_id[album.post_id.length - 1].image}`,
+            height: album.post_id[album.post_id.length - 1].image_height,
+            width: album.post_id[album.post_id.length - 1].image_width,
+          };
+        } else {
+          image = {
+            name: 'default_avatar_album.png',
+            src: '/uploads/default_avatar_album.png',
+            height: 400,
+            width: 400,
+          };
+        }
+        albums.push({
+          id: album._id,
+          name: album.name,
+          description: album.description,
+          secret: album.secret,
+          image: image,
+        });
+      });
+
       return albums;
     } catch {
       throw new NotFoundException();

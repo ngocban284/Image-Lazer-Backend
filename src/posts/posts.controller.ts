@@ -34,7 +34,7 @@ export class PostsController {
   constructor(
     @InjectConnection() private readonly connection: Connection,
     private readonly postsService: PostsService,
-  ) { }
+  ) {}
 
   @Get()
   async getPosts(@Body() getPost: GetPostDto, @Res() res: Response) {
