@@ -11,7 +11,7 @@ export class Album extends Document {
   @Prop({ type: [Types.ObjectId], ref: Post.name, required: false })
   post_id: [Types.ObjectId];
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   name: string;
 
   @Prop({ required: false })

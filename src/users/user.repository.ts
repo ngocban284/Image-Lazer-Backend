@@ -140,6 +140,15 @@ export class UserRepository {
       ...createUserDto,
       userName,
     });
+
+    // create default album
+    let album = new this.albumModel({
+      user_id: user._id + '',
+      name: 'Album mặc định',
+      description: '',
+      secret: false,
+    });
+
     const allUser = await this.getAllUsers();
 
     userName = userName + '_' + allUser.length;
@@ -152,6 +161,7 @@ export class UserRepository {
     );
 
     try {
+      await album.save({ session });
       await newUser.save({ session });
       return newUser;
     } catch {
