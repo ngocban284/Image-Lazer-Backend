@@ -80,7 +80,7 @@ export class UserRepository {
       // console.log('createdImage', createdImages);
 
       albumsOfUser = await this.albumModel
-        .find({ user_id: user._id })
+        .find({ user_id: user._id + '' })
         .populate('post_id');
       // console.log('album of user', albumsOfUser);
       // console.log('createdImage', createdImages);
