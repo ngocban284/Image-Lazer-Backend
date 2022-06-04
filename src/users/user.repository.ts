@@ -9,6 +9,7 @@ import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
@@ -221,6 +222,29 @@ export class UserRepository {
         throw new NotFoundException();
       }
 
+      return user;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async updateTopicsOfUser(
+    user_id: Types.ObjectId,
+    updateTopic: UpdateUserTopicDto,
+    session: ClientSession,
+  ) {
+    try {
+      // console.log(updateTopic.topic);
+      let user = await this.userModel.findOneAndUpdate(
+        { _id: user_id },
+        { topics: updateTopic.topic },
+        { new: true, session },
+      );
+
+      if (!user) {
+        throw new NotFoundException();
+      }
+      // console.log(user);
       return user;
     } catch {
       throw new InternalServerErrorException();
