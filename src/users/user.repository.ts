@@ -65,7 +65,7 @@ export class UserRepository {
     let imageAlbums = [];
     let albumsOfUser;
     let albums = [];
-    let topic = [];
+
     try {
       user = await this.userModel.findOne({ userName });
       // console.log('user', user);
@@ -104,11 +104,7 @@ export class UserRepository {
               width: album.post_id[album.post_id.length - 1].image_width,
             },
           });
-          album.post_id.map((post) => {
-            if (!topic.includes(post.topic)) {
-              topic.push(post.topic);
-            }
-          });
+
           // console.log(albums);
         } else {
           albums.push({
@@ -128,7 +124,7 @@ export class UserRepository {
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums, topic };
+    return { user, createdImages, albums };
     // return albumsOfUser;
   }
 
