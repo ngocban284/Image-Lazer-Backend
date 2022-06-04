@@ -69,7 +69,7 @@ export class UserRepository {
     try {
       user = await this.userModel.findOne({ userName });
       // console.log('user', user);
-      postOfUser = await this.postModel.find({ user_id: user._id });
+      postOfUser = await this.postModel.find({ user_id: user._id + '' });
       // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
         createdImages.push({
