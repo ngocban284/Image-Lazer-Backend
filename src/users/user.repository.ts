@@ -22,7 +22,7 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) {}
+  ) { }
 
   async getAllUsers() {
     let users;
@@ -73,6 +73,7 @@ export class UserRepository {
       // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
         createdImages.push({
+          id: post._id + '',
           name: post.name,
           src: '/uploads/' + post.image,
           height: post.image_height,
