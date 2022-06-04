@@ -65,7 +65,7 @@ export class UserRepository {
     let imageAlbums = [];
     let albumsOfUser;
     let albums = [];
-
+    let topics = [];
     try {
       user = await this.userModel.findOne({ userName });
       // console.log('user', user);
@@ -80,6 +80,7 @@ export class UserRepository {
         });
       });
       // console.log('createdImage', createdImages);
+      topics = user.topics;
 
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id + '' })
@@ -124,7 +125,7 @@ export class UserRepository {
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums };
+    return { user, createdImages, albums, topics };
     // return albumsOfUser;
   }
 

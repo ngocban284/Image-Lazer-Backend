@@ -49,7 +49,7 @@ export class UsersController {
   ) {
     // console.log(request.user);
     try {
-      const { user, createdImages, albums } =
+      const { user, createdImages, albums, topics } =
         await this.usersService.getUserByUserName(user_name);
 
       // console.log(user);
@@ -71,6 +71,7 @@ export class UsersController {
         avatar_width: user.avatar_width,
         following_count: user.following_count,
         follwer_count: user.follwer_count,
+        topics,
         createdImages,
         albums,
       });
