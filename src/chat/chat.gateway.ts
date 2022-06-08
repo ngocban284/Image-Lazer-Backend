@@ -29,9 +29,8 @@ export class ChatGateway
 
   async handleConnection(client: Socket) {
     const clientId = client.id.toString();
-    const user = await this.chatService.currentUserId(
-      client.handshake.auth.token,
-    );
+    const token = client.handshake.auth?.token;
+    const user = await this.chatService.currentUserId(token);
     if (!user) {
       return this.disconnect(client);
     }

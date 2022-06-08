@@ -9,8 +9,12 @@ export class ChatService {
   private connectedUsers = new Map();
 
   currentUserId = async (token: string) => {
-    const decoded = await this.jwtService.verifyAsync(token);
-    return decoded;
+    try {
+      const decoded = await this.jwtService.verifyAsync(token);
+      return decoded;
+    } catch (error) {
+      new Error('NOT_AUTHORIZED');
+    }
   };
 
   addNewConnectedUser = (addNewConnectedUserDto: AddNewConnectedUserDto) => {

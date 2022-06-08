@@ -6,7 +6,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { MessageModule } from './message/message.module';
 import { ConversationModule } from './conversation/conversation.module';
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { ChatGateway } from './chat.gateway';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthSocketMiddleware } from './authSocket.middleware';
@@ -37,6 +37,8 @@ import { AlbumsModule } from '../albums/albums.module';
 })
 export class ChatModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(AuthSocketMiddleware).forRoutes('/auth/signin');
+    consumer
+      .apply(AuthSocketMiddleware)
+      .forRoutes({ path: 'users/auth/signin', method: RequestMethod.POST });
   }
 }
