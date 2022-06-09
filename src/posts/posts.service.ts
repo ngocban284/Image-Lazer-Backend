@@ -8,6 +8,7 @@ import { PostRepository } from './posts.repository';
 import { CreatePostDto } from './dto/createPost.dto';
 import { GetPostDto } from './dto/getPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UpdatePostOwnerDto } from './dto/updatePostOwner.dto';
 
 @Injectable()
 export class PostsService {
@@ -15,33 +16,23 @@ export class PostsService {
 
   async createPost(
     user_id: Types.ObjectId,
-    photo_url: string,
-    photo_height: number,
-    photo_width: number,
     postDto: CreatePostDto,
     session: ClientSession,
   ) {
-    return await this.postRepository.createPost(
-      user_id,
-      photo_url,
-      photo_height,
-      photo_width,
-      postDto,
-      session,
-    );
+    return await this.postRepository.createPost(user_id, postDto, session);
   }
 
   async getPosts(getPost: GetPostDto) {
     return await this.postRepository.getPost(getPost);
   }
 
-  async updatePost(
+  async updatePostOwner(
     user_id: Types.ObjectId,
     post_id: Types.ObjectId,
-    updatePostDto: UpdatePostDto,
+    updatePostDto: UpdatePostOwnerDto,
     session: ClientSession,
   ) {
-    return await this.postRepository.updatePost(
+    return await this.postRepository.updatePostOwner(
       user_id,
       post_id,
       updatePostDto,

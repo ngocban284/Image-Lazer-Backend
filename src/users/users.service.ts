@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { JwtPayload } from './jwt/interfaces/jwt-payload.interface';
 import { LogInUserDto } from './dto/loginUser.dto';
 import * as bcrypt from 'bcrypt';
@@ -72,6 +73,18 @@ export class UsersService {
       avatar,
       avatar_height,
       avatar_width,
+      session,
+    );
+  }
+
+  async updateTopicsOfUser(
+    user_id: Types.ObjectId,
+    updateTopic: UpdateUserTopicDto,
+    session: ClientSession,
+  ) {
+    return await this.userRepository.updateTopicsOfUser(
+      user_id,
+      updateTopic,
       session,
     );
   }

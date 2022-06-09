@@ -30,22 +30,28 @@ export class Post extends Document {
   user_id: Types.ObjectId;
 
   @Prop({ required: true })
-  photo_url: string;
+  album_id: Types.ObjectId;
+
+  @Prop({ required: true })
+  image: string;
 
   @Prop({ required: false })
-  photo_height: number;
+  image_height: number;
 
   @Prop({ required: false })
-  photo_width: number;
+  image_width: number;
 
   @Prop({ required: false })
   description: string;
 
   @Prop({ required: false })
-  website: string;
+  link: string;
 
   @Prop({ required: true })
-  tags: string;
+  title: string;
+
+  @Prop({ required: true })
+  topic: string;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

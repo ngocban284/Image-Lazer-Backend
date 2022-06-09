@@ -5,9 +5,10 @@ https://docs.nestjs.com/providers#services
 import { Injectable } from '@nestjs/common';
 import { ClientSession, Schema as MongoSchema, Types } from 'mongoose';
 import { AlbumRepository } from './albums.repository';
-import { CreateAlbumDto } from './dto/createAlbum.dto';
+import { AddPostToAlbumDto } from './dto/addPostToAlbum.dto';
 import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
+import { CreateAlbumDto } from './dto/createAlbum.dto';
 
 @Injectable()
 export class AlbumsService {
@@ -15,10 +16,26 @@ export class AlbumsService {
 
   async createAlbum(
     user_id: Types.ObjectId,
-    albumDto: CreateAlbumDto,
+    createAlbumDto: CreateAlbumDto,
     session: ClientSession,
   ) {
-    return await this.albumRepository.createAlbum(user_id, albumDto, session);
+    return await this.albumRepository.createAlbum(
+      user_id,
+      createAlbumDto,
+      session,
+    );
+  }
+
+  async addPostToAlbum(
+    user_id: Types.ObjectId,
+    albumDto: AddPostToAlbumDto,
+    session: ClientSession,
+  ) {
+    return await this.albumRepository.addPostToAlbum(
+      user_id,
+      albumDto,
+      session,
+    );
   }
 
   async getAlbum() {

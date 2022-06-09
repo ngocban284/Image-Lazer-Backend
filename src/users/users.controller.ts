@@ -19,6 +19,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
 import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
@@ -48,8 +49,17 @@ export class UsersController {
   ) {
     // console.log(request.user);
     try {
-      const { user, createdImages, albums } =
+      const { user, createdImages, albums, topics } =
         await this.usersService.getUserByUserName(user_name);
+
+      // console.log(user);
+      // console.log(createdImages);
+      // console.log(albums);
+      // const { albumsOfUser } = await this.usersService.getUserByUserName(
+      //   user_name,
+      // );
+      // await this.usersService.getUserByUserName(user_name);
+      // console.log('die2');
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy Thông Tin Người Dùng Thành Công !',
@@ -61,9 +71,11 @@ export class UsersController {
         avatar_width: user.avatar_width,
         following_count: user.following_count,
         follwer_count: user.follwer_count,
+        topics,
         createdImages,
         albums,
       });
+      // return res.status(HttpStatus.OK).json(albumsOfUser);
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
         errorCode: 1,
@@ -242,6 +254,39 @@ export class UsersController {
       return res
         .status(HttpStatus.BAD_REQUEST)
         .json({ errorCode: 1, message: 'Cập Nhật Avatar Thất Bại !' });
+    } finally {
+      session.endSession();
+    }
+  }
+
+  @Patch('/uploadTopic/topics')
+  @UseGuards(JwtGuard)
+  async updateTopics(
+    @Body() updateTopicsDto: UpdateUserTopicDto,
+    @Req() request,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+    try {
+      console.log(updateTopicsDto.topic);
+      const user = await this.usersService.updateTopicsOfUser(
+        request.user._id,
+        updateTopicsDto,
+        session,
+      );
+      await session.commitTransaction();
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Cập Nhật Topic Thành Công !',
+        user,
+      });
+    } catch {
+      await session.abortTransaction();
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Cập Nhật Topic Thất Bại !',
+      });
     } finally {
       session.endSession();
     }

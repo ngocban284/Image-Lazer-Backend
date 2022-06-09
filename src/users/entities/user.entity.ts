@@ -45,6 +45,9 @@ export class User extends Document {
   follower_count: number;
 
   @Prop({ required: false })
+  topics: string[];
+
+  @Prop({ required: false })
   refreshToken: string;
 
   @Prop({ required: false })

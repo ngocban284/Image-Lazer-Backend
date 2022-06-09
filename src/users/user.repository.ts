@@ -9,17 +9,20 @@ import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
+import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { Inject } from '@nestjs/common';
+import * as sizeOf from 'image-size';
+import * as bcrypt from 'bcrypt';
 
 export class UserRepository {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) {}
+  ) { }
 
   async getAllUsers() {
     let users;
@@ -62,29 +65,69 @@ export class UserRepository {
     let imageAlbums = [];
     let albumsOfUser;
     let albums = [];
+    let topics = [];
     try {
       user = await this.userModel.findOne({ userName });
-      postOfUser = await this.postModel.find({ user_id: user._id });
+      // console.log('user', user);
+      postOfUser = await this.postModel.find({ user_id: user._id + '' });
+      // console.log('postOfUser', postOfUser);
       postOfUser.map((post) => {
-        createdImages.push(post.photo_url);
-      });
-      albumsOfUser = await this.albumModel
-        .find({ user_id: user._id })
-        .populate('post_id');
-
-      albumsOfUser.map((album) => {
-        nameAlbums.push(album.name);
-        imageAlbums.push(album.post_id[album.post_id.length - 1].photo_url);
-        albums.push({
-          id: album._id,
-          name: album.name,
-          image: album.post_id[album.post_id.length - 1].photo_url,
+        createdImages.push({
+          id: post._id + '',
+          name: post.name,
+          src: '/uploads/' + post.image,
+          height: post.image_height,
+          width: post.image_width,
         });
       });
+      // console.log('createdImage', createdImages);
+      topics = user.topics;
+
+      albumsOfUser = await this.albumModel
+        .find({ user_id: user._id + '' })
+        .populate('post_id');
+      // console.log('album of user', albumsOfUser);
+      // console.log('createdImage', createdImages);
+      albumsOfUser.map((album) => {
+        // console.log(album);
+        nameAlbums.push(album.name);
+        // console.log(album.post_id.length);
+        if (album.post_id.length >= 1) {
+          imageAlbums.push(album.post_id[album.post_id.length - 1].image);
+          albums.push({
+            id: album._id,
+            name: album.name,
+            description: album.description,
+            secret: album.secret,
+            image: {
+              name: album.post_id[album.post_id.length - 1].image,
+              src: '/uploads/' + album.post_id[album.post_id.length - 1].image,
+              height: album.post_id[album.post_id.length - 1].image_height,
+              width: album.post_id[album.post_id.length - 1].image_width,
+            },
+          });
+
+          // console.log(albums);
+        } else {
+          albums.push({
+            id: album._id,
+            name: album.name,
+            image: {
+              name: 'default_avatar_album.png',
+              src: '/uploads/default_avatar_album.png',
+              height: 400,
+              width: 400,
+            },
+          });
+        }
+      });
+      // console.log(imageAlbums);
+      // console.log('createdImage', createdImages);
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums };
+    return { user, createdImages, albums, topics };
+    // return albumsOfUser;
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
@@ -102,6 +145,15 @@ export class UserRepository {
       ...createUserDto,
       userName,
     });
+
+    // create default album
+    let album = new this.albumModel({
+      user_id: user._id + '',
+      name: 'Album mặc định',
+      description: '',
+      secret: false,
+    });
+
     const allUser = await this.getAllUsers();
 
     userName = userName + '_' + allUser.length;
@@ -114,6 +166,7 @@ export class UserRepository {
     );
 
     try {
+      await album.save({ session });
       await newUser.save({ session });
       return newUser;
     } catch {
@@ -133,6 +186,9 @@ export class UserRepository {
     }
 
     try {
+      if (updateUserDto.password) {
+        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+      }
       user.set(updateUserDto);
       await user.save({ session });
     } catch {
@@ -164,6 +220,29 @@ export class UserRepository {
         throw new NotFoundException();
       }
 
+      return user;
+    } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async updateTopicsOfUser(
+    user_id: Types.ObjectId,
+    updateTopic: UpdateUserTopicDto,
+    session: ClientSession,
+  ) {
+    try {
+      // console.log(updateTopic.topic);
+      let user = await this.userModel.findOneAndUpdate(
+        { _id: user_id },
+        { topics: updateTopic.topic },
+        { new: true, session },
+      );
+
+      if (!user) {
+        throw new NotFoundException();
+      }
+      // console.log(user);
       return user;
     } catch {
       throw new InternalServerErrorException();
