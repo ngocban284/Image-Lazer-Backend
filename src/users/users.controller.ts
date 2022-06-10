@@ -33,7 +33,7 @@ export class UsersController {
     @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   @Get()
   // @UseGuards(JwtGuard)
@@ -105,11 +105,11 @@ export class UsersController {
   async signIn(@Body() logInUserDto: LogInUserDto, @Res() res: Response) {
     try {
       const token = await this.usersService.login(logInUserDto);
-      const tomorrow = new Date();
-      tomorrow.setDate(new Date().getDate() + 1);
+      const nextMonth = new Date();
+      nextMonth.setDate(new Date().getDate() + 1);
       res.header('Authorization', token.accessToken);
       res.cookie('refreshToken', token.refreshToken, {
-        expires: tomorrow,
+        expires: nextMonth,
         sameSite: 'strict',
         secure: false,
         httpOnly: true,
