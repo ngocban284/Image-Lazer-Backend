@@ -139,13 +139,30 @@ export class PostRepository {
     try {
       let post: any = await this.postModel
         .findById(post_id)
-        .populate('user_id')
+        .populate({
+          path: 'user_id',
+          select: [
+            '_id',
+            'userName',
+            'fullName',
+            'age',
+            'email',
+            'avatar',
+            'following_count',
+            'followers_count',
+            'topics',
+            'followers',
+          ],
+        })
         .lean()
         .exec();
 
       post = await this.attachLikesComments(post);
       // console.log(post.user_id._id + '', typeof post.user_id._id + '');
       post.user_id.followers = await this.attachFollower(post.user_id._id);
+      post['userInformation'] = post['user_id'];
+      delete post['user_id'];
+      delete post['__v'];
 
       return post;
     } catch {
