@@ -31,7 +31,6 @@ export class ChatGateway
     const clientId = client.id.toString();
     const token = client.handshake.auth?.token;
     const user = await this.chatService.currentUserId(token);
-    console.log(user);
     if (!user) {
       return this.disconnect(client);
     }

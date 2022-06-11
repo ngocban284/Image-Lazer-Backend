@@ -36,9 +36,10 @@ export class MessageService {
 
   directMessageHandler = async (client: Socket, data: DirectMessageDto) => {
     try {
-      console.log('direct message event is being handler');
+      // console.log('direct message event is being handler');
 
       const { user_id: userId } = client.data.user;
+      // console.log(userId);
 
       const { receiverUserId, content } = data;
 
@@ -80,16 +81,18 @@ export class MessageService {
     data: DirectChatHistoryDto,
   ) => {
     try {
-      const { userId } = client.data.user;
-      const { receiverUserId } = data;
+      const { user_id } = client.data.user;
+      const receiverUserId = data.toString();
 
-      const conversation = await this.conversationModel.findOne({
-        participants: { $all: [userId, receiverUserId] },
-      });
+      if (user_id && receiverUserId) {
+        const conversation = await this.conversationModel.findOne({
+          participants: { $all: [user_id, receiverUserId] },
+        });
 
-      if (conversation) {
-        // update chat history
-        this.updateChatHistory(conversation._id.toString(), client.id);
+        if (conversation) {
+          // update chat history
+          this.updateChatHistory(conversation._id.toString(), client.id);
+        }
       }
     } catch (error) {
       console.log(error);

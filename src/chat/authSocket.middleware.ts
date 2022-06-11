@@ -12,11 +12,10 @@ export class AuthSocketMiddleware implements NestMiddleware {
   async use(req: Request, res: Response, next: (socketError?: Error) => void) {
     try {
       const { user_id } = this.jwtService.verify(req.cookies.refreshToken);
-      console.log(user_id);
+      // console.log(user_id);
       const user = await this.usersService.getUserById(user_id);
       req.user = user;
     } catch (error) {
-      console.log('dcm may');
       const socketError = new Error('NOT_AUTHORIZED');
       return next(socketError);
     }
