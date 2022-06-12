@@ -69,7 +69,7 @@ export class MessageService {
         });
 
         // chat update, update chat history
-        this.updateChatHistory(conversation._id.toString());
+        this.updateChatHistory(newConversation._id.toString());
       }
     } catch (error) {
       console.log(error);
