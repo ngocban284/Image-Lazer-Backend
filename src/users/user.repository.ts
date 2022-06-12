@@ -13,6 +13,7 @@ import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { Follow } from 'src/follows/entities/follow.entity';
 import { Inject } from '@nestjs/common';
 import * as sizeOf from 'image-size';
 import * as bcrypt from 'bcrypt';
@@ -22,7 +23,46 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) { }
+    @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
+  ) {}
+
+  async attachFollower(user_id: Types.ObjectId) {
+    // console.log(user_id);
+    const parserId = user_id.toString();
+    let follow = await this.followModel
+      .find({ followed_user_id: parserId })
+      .populate({
+        path: 'user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    let newFollow = [];
+    follow.map((item) => {
+      newFollow.push(item.user_id);
+    });
+
+    return newFollow;
+  }
+
+  async attachFollowing(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+    let folowing = await this.followModel
+      .find({ user_id: parserId })
+      .populate({
+        path: 'followed_user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    let newFollowing = [];
+    folowing.map((item) => {
+      newFollowing.push(item.user_id);
+    });
+    return newFollowing;
+  }
 
   async getAllUsers() {
     let users;
@@ -66,8 +106,15 @@ export class UserRepository {
     let albumsOfUser;
     let albums = [];
     let topics = [];
+    let followers = [];
+    let following = [];
     try {
       user = await this.userModel.findOne({ userName });
+
+      followers = await this.attachFollower(user._id);
+
+      following = await this.attachFollowing(user._id);
+
       // console.log('user', user);
       postOfUser = await this.postModel.find({ user_id: user._id + '' });
       // console.log('postOfUser', postOfUser);
@@ -126,7 +173,7 @@ export class UserRepository {
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums, topics };
+    return { user, createdImages, albums, topics, followers, following };
     // return albumsOfUser;
   }
 
