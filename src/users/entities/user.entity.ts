@@ -27,8 +27,7 @@ export class User extends Document {
 
   @Prop({
     required: false,
-    default:
-      'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+    default: 'default_avatar.png',
   })
   avatar: string;
 
