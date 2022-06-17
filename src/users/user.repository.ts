@@ -13,6 +13,7 @@ import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { Follow } from 'src/follows/entities/follow.entity';
 import { Inject } from '@nestjs/common';
 import * as sizeOf from 'image-size';
 import * as bcrypt from 'bcrypt';
@@ -22,7 +23,47 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
-  ) { }
+    @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
+  ) {}
+
+  async attachFollower(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+    let follow = await this.followModel
+      .find({ followed_user_id: parserId })
+      .populate({
+        path: 'user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    let newFollow = [];
+    follow.map((item) => {
+      newFollow.push(item.user_id);
+    });
+
+    return newFollow;
+  }
+
+  async attachFollowing(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+
+    let following = await this.followModel
+      .find({ user_id: parserId })
+      .populate({
+        path: 'followed_user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    let newFollowing = [];
+    following.map((item) => {
+      newFollowing.push(item.followed_user_id);
+    });
+
+    return newFollowing;
+  }
 
   async getAllUsers() {
     let users;
@@ -66,8 +107,15 @@ export class UserRepository {
     let albumsOfUser;
     let albums = [];
     let topics = [];
+    let followers = [];
+    let following = [];
     try {
       user = await this.userModel.findOne({ userName });
+
+      followers = await this.attachFollower(user._id);
+
+      following = await this.attachFollowing(user._id);
+
       // console.log('user', user);
       postOfUser = await this.postModel.find({ user_id: user._id + '' });
       // console.log('postOfUser', postOfUser);
@@ -80,18 +128,16 @@ export class UserRepository {
           width: post.image_width,
         });
       });
-      // console.log('createdImage', createdImages);
+
       topics = user.topics;
 
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id + '' })
         .populate('post_id');
-      // console.log('album of user', albumsOfUser);
-      // console.log('createdImage', createdImages);
+
       albumsOfUser.map((album) => {
-        // console.log(album);
         nameAlbums.push(album.name);
-        // console.log(album.post_id.length);
+
         if (album.post_id.length >= 1) {
           imageAlbums.push(album.post_id[album.post_id.length - 1].image);
           albums.push({
@@ -106,8 +152,6 @@ export class UserRepository {
               width: album.post_id[album.post_id.length - 1].image_width,
             },
           });
-
-          // console.log(albums);
         } else {
           albums.push({
             id: album._id,
@@ -121,13 +165,10 @@ export class UserRepository {
           });
         }
       });
-      // console.log(imageAlbums);
-      // console.log('createdImage', createdImages);
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums, topics };
-    // return albumsOfUser;
+    return { user, createdImages, albums, topics, followers, following };
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
@@ -146,7 +187,6 @@ export class UserRepository {
       userName,
     });
 
-    // create default album
     let album = new this.albumModel({
       user_id: user._id + '',
       name: 'Album mặc định',
@@ -157,7 +197,7 @@ export class UserRepository {
     const allUser = await this.getAllUsers();
 
     userName = userName + '_' + allUser.length;
-    // console.log(userName);
+
     await user.save();
     const newUser = await this.userModel.findByIdAndUpdate(
       user.id,

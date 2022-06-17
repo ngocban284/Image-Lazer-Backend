@@ -30,10 +30,36 @@ export class PostRepository {
     const parserId = user_id.toString();
     let follow = await this.followModel
       .find({ followed_user_id: parserId })
-      .populate('user_id')
+      .populate({
+        path: 'user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
       .lean()
       .exec();
-    return follow;
+
+    let newFollow = [];
+    follow.map((item) => {
+      newFollow.push(item.user_id);
+    });
+
+    return newFollow;
+  }
+
+  async attachFollowing(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+    let folowing = await this.followModel
+      .find({ user_id: parserId })
+      .populate({
+        path: 'followed_user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+    let newFollowing = [];
+    folowing.map((item) => {
+      newFollowing.push(item.user_id);
+    });
+    return newFollowing;
   }
 
   async attachLikesComments(givenPost: any) {
@@ -52,6 +78,10 @@ export class PostRepository {
     let comments: any = await this.commentModel
       .find({ post_id: givenPost._id + '' })
       .populate('user_id')
+      .populate('-password')
+      .populate('-refreshToken')
+      .populate('-__v')
+      .populate('-refreshTokenExpiry')
       .lean()
       .exec();
 
@@ -59,6 +89,10 @@ export class PostRepository {
       let replies = await this.commentModel
         .find({ parentComment_id: comments[i]._id + '' })
         .populate('user_id')
+        .populate('-password')
+        .populate('-refreshToken')
+        .populate('-__v')
+        .populate('-refreshTokenExpiry')
         .lean()
         .exec();
 
@@ -119,6 +153,10 @@ export class PostRepository {
       let posts: any = await this.postModel
         .find({})
         .populate('user_id')
+        .populate('-password')
+        .populate('-refreshToken')
+        .populate('-__v')
+        .populate('-refreshTokenExpiry')
         .skip(skip)
         .limit(limit)
         .lean()
@@ -139,13 +177,31 @@ export class PostRepository {
     try {
       let post: any = await this.postModel
         .findById(post_id)
-        .populate('user_id')
+        .populate({
+          path: 'user_id',
+          select: [
+            '_id',
+            'userName',
+            'fullName',
+            'age',
+            'email',
+            'avatar',
+            'following_count',
+            'follower_count',
+            'topics',
+          ],
+        })
         .lean()
         .exec();
 
       post = await this.attachLikesComments(post);
       // console.log(post.user_id._id + '', typeof post.user_id._id + '');
       post.user_id.followers = await this.attachFollower(post.user_id._id);
+      post.user_id.following = await this.attachFollowing(post.user_id._id);
+
+      post['userInformation'] = post['user_id'];
+      delete post['user_id'];
+      delete post['__v'];
 
       return post;
     } catch {

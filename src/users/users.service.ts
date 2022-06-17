@@ -19,6 +19,14 @@ export class UsersService {
     private jwtService: JwtService,
   ) {}
 
+  async attachFollower(user_id: Types.ObjectId) {
+    return await this.userRepository.attachFollower(user_id);
+  }
+
+  async attachFollowing(user_id: Types.ObjectId) {
+    return await this.userRepository.attachFollowing(user_id);
+  }
+
   async getAllUsers() {
     return await this.userRepository.getAllUsers();
   }

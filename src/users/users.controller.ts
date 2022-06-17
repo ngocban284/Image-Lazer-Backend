@@ -33,7 +33,7 @@ export class UsersController {
     @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   @Get()
   // @UseGuards(JwtGuard)
@@ -49,20 +49,13 @@ export class UsersController {
   ) {
     // console.log(request.user);
     try {
-      const { user, createdImages, albums, topics } =
+      const { user, createdImages, albums, topics, followers, following } =
         await this.usersService.getUserByUserName(user_name);
 
-      // console.log(user);
-      // console.log(createdImages);
-      // console.log(albums);
-      // const { albumsOfUser } = await this.usersService.getUserByUserName(
-      //   user_name,
-      // );
-      // await this.usersService.getUserByUserName(user_name);
-      // console.log('die2');
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy Thông Tin Người Dùng Thành Công !',
+        id: user._id,
         userName: user.userName,
         fullName: user.fullName,
         email: user.email,
@@ -74,6 +67,8 @@ export class UsersController {
         topics,
         createdImages,
         albums,
+        followers,
+        following,
       });
       // return res.status(HttpStatus.OK).json(albumsOfUser);
     } catch (error) {
@@ -105,11 +100,11 @@ export class UsersController {
   async signIn(@Body() logInUserDto: LogInUserDto, @Res() res: Response) {
     try {
       const token = await this.usersService.login(logInUserDto);
-      const tomorrow = new Date();
-      tomorrow.setDate(new Date().getDate() + 1);
+      const nextMonth = new Date();
+      nextMonth.setDate(new Date().getDate() + 1);
       res.header('Authorization', token.accessToken);
       res.cookie('refreshToken', token.refreshToken, {
-        expires: tomorrow,
+        expires: nextMonth,
         sameSite: 'strict',
         secure: false,
         httpOnly: false,
@@ -117,6 +112,13 @@ export class UsersController {
       const { userId } = this.jwtService.verify(token.accessToken);
 
       const user = await this.usersService.getUserById(userId);
+
+      let followers = [];
+      followers = await this.usersService.attachFollower(userId);
+
+      let following = [];
+      following = await this.usersService.attachFollowing(userId);
+
       // console.log(user);
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
@@ -131,6 +133,8 @@ export class UsersController {
         avatar_height: user.avatar_height,
         avatar_width: user.avatar_width,
         accessToken: token.accessToken,
+        followers,
+        following,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({

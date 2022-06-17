@@ -11,10 +11,12 @@ import { JwtStrategy } from './jwt/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { PostsModule } from 'src/posts/posts.module';
 import { AlbumsModule } from 'src/albums/albums.module';
+import { FollowsModule } from 'src/follows/follows.module';
 
 @Module({
   imports: [
     ConfigModule,
+    forwardRef(() => FollowsModule),
     forwardRef(() => PostsModule),
     AlbumsModule,
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
