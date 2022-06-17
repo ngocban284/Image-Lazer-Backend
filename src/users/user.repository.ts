@@ -27,7 +27,6 @@ export class UserRepository {
   ) {}
 
   async attachFollower(user_id: Types.ObjectId) {
-    // console.log(user_id);
     const parserId = user_id.toString();
     let follow = await this.followModel
       .find({ followed_user_id: parserId })
@@ -48,7 +47,8 @@ export class UserRepository {
 
   async attachFollowing(user_id: Types.ObjectId) {
     const parserId = user_id.toString();
-    let folowing = await this.followModel
+
+    let following = await this.followModel
       .find({ user_id: parserId })
       .populate({
         path: 'followed_user_id',
@@ -58,9 +58,10 @@ export class UserRepository {
       .exec();
 
     let newFollowing = [];
-    folowing.map((item) => {
-      newFollowing.push(item.user_id);
+    following.map((item) => {
+      newFollowing.push(item.followed_user_id);
     });
+
     return newFollowing;
   }
 
@@ -127,18 +128,16 @@ export class UserRepository {
           width: post.image_width,
         });
       });
-      // console.log('createdImage', createdImages);
+
       topics = user.topics;
 
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id + '' })
         .populate('post_id');
-      // console.log('album of user', albumsOfUser);
-      // console.log('createdImage', createdImages);
+
       albumsOfUser.map((album) => {
-        // console.log(album);
         nameAlbums.push(album.name);
-        // console.log(album.post_id.length);
+
         if (album.post_id.length >= 1) {
           imageAlbums.push(album.post_id[album.post_id.length - 1].image);
           albums.push({
@@ -153,8 +152,6 @@ export class UserRepository {
               width: album.post_id[album.post_id.length - 1].image_width,
             },
           });
-
-          // console.log(albums);
         } else {
           albums.push({
             id: album._id,
@@ -168,13 +165,10 @@ export class UserRepository {
           });
         }
       });
-      // console.log(imageAlbums);
-      // console.log('createdImage', createdImages);
     } catch {
       throw new InternalServerErrorException();
     }
     return { user, createdImages, albums, topics, followers, following };
-    // return albumsOfUser;
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
@@ -193,7 +187,6 @@ export class UserRepository {
       userName,
     });
 
-    // create default album
     let album = new this.albumModel({
       user_id: user._id + '',
       name: 'Album mặc định',
@@ -204,7 +197,7 @@ export class UserRepository {
     const allUser = await this.getAllUsers();
 
     userName = userName + '_' + allUser.length;
-    // console.log(userName);
+
     await user.save();
     const newUser = await this.userModel.findByIdAndUpdate(
       user.id,

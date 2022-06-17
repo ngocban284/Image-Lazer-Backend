@@ -111,6 +111,13 @@ export class UsersController {
       const { userId } = this.jwtService.verify(token.accessToken);
 
       const user = await this.usersService.getUserById(userId);
+
+      let followers = [];
+      followers = await this.usersService.attachFollower(userId);
+
+      let following = [];
+      following = await this.usersService.attachFollowing(userId);
+
       // console.log(user);
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
@@ -125,6 +132,8 @@ export class UsersController {
         avatar_height: user.avatar_height,
         avatar_width: user.avatar_width,
         accessToken: token.accessToken,
+        followers,
+        following,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
