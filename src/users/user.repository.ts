@@ -24,7 +24,7 @@ export class UserRepository {
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
     @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
-  ) {}
+  ) { }
 
   async attachFollower(user_id: Types.ObjectId) {
     const parserId = user_id.toString();
@@ -156,6 +156,8 @@ export class UserRepository {
           albums.push({
             id: album._id,
             name: album.name,
+            description: album.description,
+            secret: album.secret,
             image: {
               name: 'default_avatar_album.png',
               src: '/uploads/default_avatar_album.png',
