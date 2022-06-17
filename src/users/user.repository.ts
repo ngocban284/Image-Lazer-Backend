@@ -28,7 +28,7 @@ export class UserRepository {
 
   async attachFollower(user_id: Types.ObjectId) {
     const parserId = user_id.toString();
-    let follow = await this.followModel
+    const follow = await this.followModel
       .find({ followed_user_id: parserId })
       .populate({
         path: 'user_id',
@@ -37,7 +37,7 @@ export class UserRepository {
       .lean()
       .exec();
 
-    let newFollow = [];
+    const newFollow = [];
     follow.map((item) => {
       newFollow.push(item.user_id);
     });
@@ -48,7 +48,7 @@ export class UserRepository {
   async attachFollowing(user_id: Types.ObjectId) {
     const parserId = user_id.toString();
 
-    let following = await this.followModel
+    const following = await this.followModel
       .find({ user_id: parserId })
       .populate({
         path: 'followed_user_id',
@@ -57,9 +57,10 @@ export class UserRepository {
       .lean()
       .exec();
 
-    let newFollowing = [];
+    const newFollowing = [];
     following.map((item) => {
-      newFollowing.push(item.followed_user_id);
+      const { _id, ...rest } = item.followed_user_id;
+      newFollowing.push({ id: _id, ...rest });
     });
 
     return newFollowing;
@@ -101,11 +102,11 @@ export class UserRepository {
   async getUserByUserName(userName: string) {
     let user;
     let postOfUser;
-    let createdImages = [];
-    let nameAlbums = [];
-    let imageAlbums = [];
+    const createdImages = [];
+    const nameAlbums = [];
+    const imageAlbums = [];
     let albumsOfUser;
-    let albums = [];
+    const albums = [];
     let topics = [];
     let followers = [];
     let following = [];
@@ -187,7 +188,7 @@ export class UserRepository {
       userName,
     });
 
-    let album = new this.albumModel({
+    const album = new this.albumModel({
       user_id: user._id + '',
       name: 'Album mặc định',
       description: '',
@@ -219,7 +220,7 @@ export class UserRepository {
     updateUserDto: UpdateUserDto,
     session: ClientSession,
   ) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -246,7 +247,7 @@ export class UserRepository {
     session: ClientSession,
   ) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           avatar: avatar,
@@ -273,7 +274,7 @@ export class UserRepository {
   ) {
     try {
       // console.log(updateTopic.topic);
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         { topics: updateTopic.topic },
         { new: true, session },
@@ -290,7 +291,7 @@ export class UserRepository {
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -311,7 +312,7 @@ export class UserRepository {
     refreshTokenExpiry: number,
   ) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: refreshToken,
@@ -329,7 +330,7 @@ export class UserRepository {
 
   async deleteRefreshToken(user_id: Types.ObjectId) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: null,
