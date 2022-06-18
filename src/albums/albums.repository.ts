@@ -147,6 +147,44 @@ export class AlbumRepository {
     }
   }
 
+  async getAlbumById(user_id: Types.ObjectId, album_id: Types.ObjectId) {
+    try {
+      let album: any = await this.albumModel
+        .findById({ _id: album_id + '' })
+        .populate({
+          path: 'post_id',
+          select: '_id  image image_height image_width ',
+        })
+        .populate({
+          path: 'user_id',
+          select: 'userName fullName',
+        });
+
+      let newAlbum = {
+        name: album.name,
+        description: album.description,
+        secret: album.secret,
+        userName: album.user_id.userName,
+        fullName: album.user_id.fullName,
+        images: [
+          album.post_id.map((post) => {
+            return {
+              id: post._id,
+              images: post.image,
+              src: `uploads/${post.image}`,
+              height: post.image_height,
+              width: post.image_width,
+            };
+          }),
+        ],
+      };
+
+      return newAlbum;
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
   async getAlbumByUser(user_id: Types.ObjectId) {
     try {
       let albums = [];

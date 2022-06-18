@@ -46,6 +46,10 @@ export class AlbumsService {
     return await this.albumRepository.getAlbumByUser(user_id);
   }
 
+  async getAlbumById(user_id: Types.ObjectId, album_id: Types.ObjectId) {
+    return await this.albumRepository.getAlbumById(user_id, album_id);
+  }
+
   async updateAlbum(
     user_id: Types.ObjectId,
     album_id: Types.ObjectId,
