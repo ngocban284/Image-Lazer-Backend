@@ -33,7 +33,7 @@ export class UsersController {
     @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) {}
+  ) { }
 
   @Get()
   // @UseGuards(JwtGuard)
@@ -55,6 +55,7 @@ export class UsersController {
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy Thông Tin Người Dùng Thành Công !',
+        id: user._id,
         userName: user.userName,
         fullName: user.fullName,
         email: user.email,
