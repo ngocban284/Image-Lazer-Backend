@@ -33,7 +33,7 @@ export class AlbumsController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private readonly albumService: AlbumsService,
-  ) {}
+  ) { }
 
   @Post()
   @UseGuards(JwtGuard)
@@ -126,15 +126,12 @@ export class AlbumsController {
   }
 
   @Get('/:album_id')
-  @UseGuards(JwtGuard)
   async getAlbumById(
     @Param('album_id') album_id: Types.ObjectId,
-    @Req() request,
     @Res() res: Response,
   ) {
     try {
       const album = await this.albumService.getAlbumById(
-        request.user._id,
         album_id,
       );
       return res.status(HttpStatus.OK).json({
