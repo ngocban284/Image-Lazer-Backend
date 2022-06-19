@@ -19,7 +19,7 @@ export class AlbumRepository {
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
     private readonly postRepository: PostRepository,
-  ) {}
+  ) { }
 
   async createAlbum(
     user_id: Types.ObjectId,
@@ -147,7 +147,7 @@ export class AlbumRepository {
     }
   }
 
-  async getAlbumById(user_id: Types.ObjectId, album_id: Types.ObjectId) {
+  async getAlbumById(album_id: Types.ObjectId) {
     try {
       let album: any = await this.albumModel
         .findById({ _id: album_id + '' })
@@ -166,17 +166,15 @@ export class AlbumRepository {
         secret: album.secret,
         userName: album.user_id.userName,
         fullName: album.user_id.fullName,
-        images: [
-          album.post_id.map((post) => {
-            return {
-              id: post._id,
-              images: post.image,
-              src: `uploads/${post.image}`,
-              height: post.image_height,
-              width: post.image_width,
-            };
-          }),
-        ],
+        images: album.post_id.map((post) => {
+          return {
+            id: post._id,
+            name: post.image,
+            src: `/uploads/${post.image}`,
+            height: post.image_height,
+            width: post.image_width,
+          };
+        }),
       };
 
       return newAlbum;
