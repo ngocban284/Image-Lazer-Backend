@@ -10,4 +10,7 @@ export class UpdateAlbumDto {
   @IsOptional()
   @IsString()
   description: string;
+
+  @IsOptional()
+  secret: boolean;
 }
