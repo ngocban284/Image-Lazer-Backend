@@ -231,15 +231,22 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { _id: album_id }],
-      });
-      if (album) {
+      let album = await this.albumModel.findById({ _id: album_id + '' });
+
+      if (album.user_id.toString() == user_id.toString()) {
+        console.log(updateAlbumDto);
         album = await this.albumModel.findByIdAndUpdate(
-          album_id,
-          updateAlbumDto,
-          { new: true, session: session },
+          { _id: album._id + '' },
+          {
+            $set: {
+              name: updateAlbumDto.name,
+              description: updateAlbumDto.description,
+              secret: updateAlbumDto.secret,
+            },
+          },
+          { session: session, new: true },
         );
+
         return album;
       } else {
         throw new NotFoundException();
@@ -302,12 +309,6 @@ export class AlbumRepository {
 
       await this.albumModel.findByIdAndDelete(album._id);
 
-      // if (album) {
-      //   await this.albumModel.findByIdAndDelete(album_id);
-      //   return true;
-      // } else {
-      //   throw new NotFoundException();
-      // }
       return album;
     } catch (error) {
       throw new InternalServerErrorException();
