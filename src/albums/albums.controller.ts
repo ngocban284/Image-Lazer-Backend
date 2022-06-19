@@ -226,7 +226,7 @@ export class AlbumsController {
       await session.commitTransaction();
       return res
         .status(HttpStatus.OK)
-        .json({ errorCode: 0, message: 'Xóa album thành công !' });
+        .json({ errorCode: 0, message: 'Xóa album thành công !', album });
     } catch {
       await session.abortTransaction();
       return res

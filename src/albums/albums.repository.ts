@@ -295,19 +295,32 @@ export class AlbumRepository {
         .findById({ _id: album_id + '' })
         .populate('post_id');
 
-      album.post_id.map(async (post: any) => {
+      let notRemovePostId = [];
+      let removePostId = [];
+      album.post_id.map((post: any) => {
         if (post.user_id != user_id + '') {
-          await this.albumModel.findByIdAndUpdate(
-            { _id: album._id + '' },
-            { $pull: { post_id: post._id } },
-            { new: true, session: session },
-          );
+          notRemovePostId.push(post._id);
         } else {
-          await this.postModel.findByIdAndDelete(post._id);
+          removePostId.push(post._id);
         }
       });
 
-      await this.albumModel.findByIdAndDelete(album._id);
+      // remove post of album
+      await this.albumModel.findByIdAndUpdate(
+        { _id: album._id + '' },
+        { $pull: { post_id: notRemovePostId } },
+      );
+
+      // remove post of user
+      for (let i = 0; i < removePostId.length; i++) {
+        await this.postModel.findByIdAndDelete({ _id: removePostId[i] + '' });
+      }
+
+      // remove album
+      await this.albumModel.findByIdAndDelete({ _id: album._id + '' });
+
+      // console.log('removePostId', removePostId);
+      // await this.albumModel.findByIdAndDelete(album._id);
 
       return album;
     } catch (error) {
