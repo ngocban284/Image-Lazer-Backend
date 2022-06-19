@@ -33,7 +33,7 @@ export class AlbumsController {
   constructor(
     @InjectConnection() private readonly mongoConnection: Connection,
     private readonly albumService: AlbumsService,
-  ) { }
+  ) {}
 
   @Post()
   @UseGuards(JwtGuard)
@@ -131,9 +131,7 @@ export class AlbumsController {
     @Res() res: Response,
   ) {
     try {
-      const album = await this.albumService.getAlbumById(
-        album_id,
-      );
+      const album = await this.albumService.getAlbumById(album_id);
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Lấy thông tin album thành công !',
@@ -206,6 +204,34 @@ export class AlbumsController {
       throw new Error();
     } finally {
       session.endSession();
+    }
+  }
+
+  @Delete('/delete/:album_id')
+  @UseGuards(JwtGuard)
+  async deleteAlbum(
+    @Param('album_id') album_id: Types.ObjectId,
+    @Req() request,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+
+    try {
+      const album = await this.albumService.deleteAlbum(
+        request.user._id,
+        album_id,
+        session,
+      );
+      await session.commitTransaction();
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Xóa album thành công !' });
+    } catch {
+      await session.abortTransaction();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Xóa album thất bại !' });
     }
   }
 }

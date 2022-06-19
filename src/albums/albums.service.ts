@@ -12,7 +12,7 @@ import { CreateAlbumDto } from './dto/createAlbum.dto';
 
 @Injectable()
 export class AlbumsService {
-  constructor(private readonly albumRepository: AlbumRepository) { }
+  constructor(private readonly albumRepository: AlbumRepository) {}
 
   async createAlbum(
     user_id: Types.ObjectId,
@@ -74,5 +74,13 @@ export class AlbumsService {
       deletePost,
       session,
     );
+  }
+
+  async deleteAlbum(
+    user_id: Types.ObjectId,
+    album_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
+    return await this.albumRepository.deleteAlbum(user_id, album_id, session);
   }
 }
