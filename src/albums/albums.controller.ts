@@ -186,10 +186,9 @@ export class AlbumsController {
     }
   }
 
-  @Delete('/:album_id')
+  @Delete()
   @UseGuards(JwtGuard)
-  async deleteAlbum(
-    @Param('album_id') album_id: Types.ObjectId,
+  async deletePostOfAlbum(
     @Body() deletePost: DeletePostOfAlbumDto,
     @Req() request,
     @Res() res: Response,
@@ -198,9 +197,8 @@ export class AlbumsController {
     session.startTransaction();
 
     try {
-      const album = await this.albumService.deleteAlbum(
+      const album = await this.albumService.deletePostOfAlbum(
         request.user._id,
-        album_id,
         deletePost,
         session,
       );

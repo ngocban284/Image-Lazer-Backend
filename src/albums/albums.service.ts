@@ -64,15 +64,13 @@ export class AlbumsService {
     );
   }
 
-  async deleteAlbum(
+  async deletePostOfAlbum(
     user_id: Types.ObjectId,
-    post_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
-    return await this.albumRepository.deleteAlbum(
+    return await this.albumRepository.deletePostOfAlbum(
       user_id,
-      post_id,
       deletePost,
       session,
     );

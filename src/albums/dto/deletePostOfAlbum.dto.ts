@@ -5,4 +5,9 @@ export class DeletePostOfAlbumDto {
   @IsOptional()
   @IsNotEmpty()
   post_id: Types.ObjectId;
+
+  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  album: string;
 }
