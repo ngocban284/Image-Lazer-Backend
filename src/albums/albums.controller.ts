@@ -125,9 +125,35 @@ export class AlbumsController {
     return res.status(HttpStatus.OK).json(album);
   }
 
+  @Get('/:album_id')
+  @UseGuards(JwtGuard)
+  async getAlbumById(
+    @Param('album_id') album_id: Types.ObjectId,
+    @Req() request,
+    @Res() res: Response,
+  ) {
+    try {
+      const album = await this.albumService.getAlbumById(
+        request.user._id,
+        album_id,
+      );
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Lấy thông tin album thành công !',
+        ...album,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Lấy thông tin album thất bại !',
+        error,
+      });
+    }
+  }
+
   @Get('/users/')
   @UseGuards(JwtGuard)
-  async getAlbumById(@Req() request, @Res() res: Response) {
+  async getAlbumByUser(@Req() request, @Res() res: Response) {
     const album = await this.albumService.getAlbumByUser(request.user._id);
     return res.status(HttpStatus.OK).json(album);
   }
