@@ -249,28 +249,27 @@ export class AlbumRepository {
     }
   }
 
-  async deleteAlbum(
+  async deletePostOfAlbum(
     user_id: Types.ObjectId,
-    album_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
     try {
       let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { _id: album_id }],
+        $and: [{ user_id: user_id + '' }, { name: deletePost.album }],
       });
 
       if (album) {
         album = await this.albumModel.findByIdAndUpdate(
           {
-            _id: album_id,
+            _id: album._id + '',
           },
           { $pull: { post_id: deletePost.post_id } },
           { new: true, session: session },
         );
-        let newAlbum = await this.albumModel.findById({ _id: album._id });
-        await this.savePostModel.findOneAndDelete({ album_id: album_id });
-        return newAlbum;
+        // let newAlbum = await this.albumModel.findById({ _id: album._id + '' });
+
+        return album;
       } else {
         throw new NotFoundException();
       }
