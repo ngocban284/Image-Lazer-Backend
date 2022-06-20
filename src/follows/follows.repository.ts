@@ -43,23 +43,24 @@ export class FollowRepository {
     const followed_user_id = followDto.followed_user_id;
 
     const followed = await this.followModel.findOne({
-      user_id,
-      followed_user_id,
+      user_id: user_id + '',
+      followed_user_id: followed_user_id + '',
     });
+    // console.log(followed);
 
     if (followed) {
       try {
         await this.followModel.deleteOne(
-          { user_id, followed_user_id },
+          { user_id: user_id + '', followed_user_id: followed_user_id + '' },
           { session },
         );
         await this.userModel.updateOne(
-          { _id: user_id },
+          { _id: user_id + '' },
           { $inc: { follow_count: -1 } },
           { session },
         );
         await this.userModel.updateOne(
-          { _id: followed_user_id },
+          { _id: followed_user_id + '' },
           { $inc: { follower_count: -1 } },
           { session },
         );
