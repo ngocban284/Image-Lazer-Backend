@@ -22,40 +22,24 @@ export class ConversationService {
   async getConversationToReceiverUserId(receiverUserId: string) {
     const setUsersSend = new Set();
     const conversations = await this.conversationModel.find({
-      'participants.1': { $all: [receiverUserId] },
+      participants: { $all: [receiverUserId] },
     });
-    // conversations.forEach(async (conversation, index) => {
-    //   const user = await this.userModel.findById(conversation.participants[0]);
-    //   setUsersSend.add(user);
-    //   if (index + 1 === conversations.length) {
-    //     const usersSend = Array.from(setUsersSend);
-    //     // console.log(usersSend);
-    //     return usersSend;
-    //   }
-    // });
-    await Promise.all(
-      conversations.map(async (conversation) => {
-        const user = await this.userModel.findById(
-          conversation.participants[0],
-        );
-        setUsersSend.add(user);
-      }),
-    );
-    const usersSend = Array.from(setUsersSend);
-    return usersSend;
+    return conversations;
   }
 
   updateReceiverConversationHandler = async (receiverUserId: string) => {
     try {
       const setUsersSend = new Set();
       const conversations = await this.conversationModel.find({
-        'participants.1': { $all: [receiverUserId] },
+        participants: { $all: [receiverUserId] },
       });
       await Promise.all(
         conversations.map(async (conversation) => {
-          const user = await this.userModel.findById(
-            conversation.participants[0],
-          );
+          const userId =
+            conversation.participants[0].toString() === receiverUserId
+              ? conversation.participants[1]
+              : conversation.participants[0];
+          const user = await this.userModel.findById(userId);
           const {
             _id: id,
             userName,
