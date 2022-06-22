@@ -27,9 +27,10 @@ export class ConfigService {
   }
 
   public getMongoConfig() {
+    const mongoUrlBase = this.get('MONGO_HOST') == 'localhost' ? 'mongodb://' : 'mongodb+srv://';
     return {
       uri:
-        'mongodb+srv://' +
+        mongoUrlBase +
         this.get('MONGO_USER') +
         ':' +
         this.get('MONGO_PASSWORD') +
