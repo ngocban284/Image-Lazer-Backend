@@ -1,6 +1,3 @@
-import { HomeModule } from './home/home.module';
-import { HomeService } from './home/home.service';
-import { HomeControllerController } from './home/home.controller';
 import { CommentsGateway } from './comments/comments.gateway';
 import { ConfigModule } from './config/config.module';
 import { CommentsModule } from './comments/comments.module';
@@ -33,10 +30,9 @@ import { join } from 'path';
     LikesModule,
     AlbumsModule,
     SavePostsModule,
-    HomeModule,
     ServeStaticModule.forRoot({ rootPath: join(__dirname, '..', 'uploads') }),
   ],
-  providers: [HomeService],
-  controllers: [HomeControllerController],
+  providers: [],
+  controllers: [],
 })
 export class AppModule {}

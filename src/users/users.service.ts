@@ -117,4 +117,8 @@ export class UsersService {
   async deleteRefreshToken(user_id: Types.ObjectId) {
     return await this.userRepository.deleteRefreshToken(user_id);
   }
+
+  async home(user_id: Types.ObjectId) {
+    return await this.userRepository.home(user_id);
+  }
 }
