@@ -125,9 +125,30 @@ export class AlbumsController {
     return res.status(HttpStatus.OK).json(album);
   }
 
+  @Get('/:album_id')
+  async getAlbumById(
+    @Param('album_id') album_id: Types.ObjectId,
+    @Res() res: Response,
+  ) {
+    try {
+      const album = await this.albumService.getAlbumById(album_id);
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Lấy thông tin album thành công !',
+        ...album,
+      });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Lấy thông tin album thất bại !',
+        error,
+      });
+    }
+  }
+
   @Get('/users/')
   @UseGuards(JwtGuard)
-  async getAlbumById(@Req() request, @Res() res: Response) {
+  async getAlbumByUser(@Req() request, @Res() res: Response) {
     const album = await this.albumService.getAlbumByUser(request.user._id);
     return res.status(HttpStatus.OK).json(album);
   }
@@ -160,10 +181,9 @@ export class AlbumsController {
     }
   }
 
-  @Delete('/:album_id')
+  @Delete()
   @UseGuards(JwtGuard)
-  async deleteAlbum(
-    @Param('album_id') album_id: Types.ObjectId,
+  async deletePostOfAlbum(
     @Body() deletePost: DeletePostOfAlbumDto,
     @Req() request,
     @Res() res: Response,
@@ -172,9 +192,8 @@ export class AlbumsController {
     session.startTransaction();
 
     try {
-      const album = await this.albumService.deleteAlbum(
+      const album = await this.albumService.deletePostOfAlbum(
         request.user._id,
-        album_id,
         deletePost,
         session,
       );
@@ -185,6 +204,34 @@ export class AlbumsController {
       throw new Error();
     } finally {
       session.endSession();
+    }
+  }
+
+  @Delete('/delete/:album_id')
+  @UseGuards(JwtGuard)
+  async deleteAlbum(
+    @Param('album_id') album_id: Types.ObjectId,
+    @Req() request,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+
+    try {
+      const album = await this.albumService.deleteAlbum(
+        request.user._id,
+        album_id,
+        session,
+      );
+      await session.commitTransaction();
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Xóa album thành công !', album });
+    } catch {
+      await session.abortTransaction();
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Xóa album thất bại !' });
     }
   }
 }

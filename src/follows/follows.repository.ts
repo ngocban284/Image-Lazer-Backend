@@ -46,6 +46,7 @@ export class FollowRepository {
       user_id: user_id + '',
       followed_user_id: followed_user_id + '',
     });
+    // console.log(followed);
 
     if (followed) {
       try {

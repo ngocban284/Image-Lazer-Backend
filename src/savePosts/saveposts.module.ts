@@ -2,18 +2,20 @@
 https://docs.nestjs.com/modules
 */
 
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { savePostSchema, SavePost } from './entities/savepost.entity';
 import { SavePostRepository } from './saveposts.repository';
 import { SavePostController } from './saveposts.controller';
 import { SavePostService } from './saveposts.service';
+import { AlbumsModule } from 'src/albums/albums.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: SavePost.name, schema: savePostSchema },
     ]),
+    forwardRef(() => AlbumsModule),
   ],
   controllers: [SavePostController],
   providers: [SavePostService, SavePostRepository],

@@ -33,7 +33,23 @@ export class UsersController {
     @InjectConnection() private readonly mongoConnection: Connection,
     private usersService: UsersService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
+
+  @Get('/home')
+  @UseGuards(JwtGuard)
+  async home(@Req() request, @Res() res: Response) {
+    try {
+      const posts = await this.usersService.home(request.user._id);
+      //   console.log(request.user._id);
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Tải trang chủ thành công !', posts });
+    } catch (err) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 1, message: 'Tải trang chủ thất bại !' });
+    }
+  }
 
   @Get()
   // @UseGuards(JwtGuard)

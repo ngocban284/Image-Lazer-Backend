@@ -220,14 +220,19 @@ export class PostRepository {
       // console.log(post);
       let album = await this.albumModel.findById(post.album_id);
 
-      console.log(album);
+      // console.log('album', album);
       let newAlbum;
+      newAlbum = await this.albumModel.findOne({
+        $and: [{ user_id: user_id + '' }, { name: updatePostDto.album }],
+      });
+      // console.log('newAlbum', newAlbum);
+
       if (post.user_id == user_id) {
         post = await this.postModel.findByIdAndUpdate(
           post_id,
           {
             $set: {
-              album_id: album._id + '',
+              album_id: newAlbum._id + '',
               title: updatePostDto.title,
               description: updatePostDto.description,
               link: updatePostDto.link,
@@ -241,7 +246,7 @@ export class PostRepository {
           post_id,
           {
             $set: {
-              album_id: album._id + '',
+              album_id: newAlbum._id + '',
             },
           },
           { session: session, new: true },

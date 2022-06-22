@@ -6,10 +6,23 @@ import { Injectable } from '@nestjs/common';
 import { ClientSession, Schema as MongoSchema, Types } from 'mongoose';
 import { SavePostRepository } from './saveposts.repository';
 import { SavePostDto } from './dto/savepost.dto';
+import { AddPostToAlbumDto } from './dto/addPostToAlbum.dto';
 
 @Injectable()
 export class SavePostService {
   constructor(private readonly savePostRepository: SavePostRepository) {}
+
+  async addPostToAlbum(
+    user_id: Types.ObjectId,
+    addPostToAlbum: AddPostToAlbumDto,
+    session: ClientSession,
+  ) {
+    return await this.savePostRepository.addPostToAlbum(
+      user_id,
+      addPostToAlbum,
+      session,
+    );
+  }
 
   async createSavePost(
     user_id: Types.ObjectId,
