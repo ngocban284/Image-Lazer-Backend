@@ -17,7 +17,7 @@ import { Logger } from '@nestjs/common';
 // import { UpdateCommentDto } from './dto/updateComment.dto';
 import { Comment } from './entities/comment.entity';
 
-@WebSocketGateway({ namespace: 'comments' })
+@WebSocketGateway({ namespace: 'comments', cors: { origin: '*' } })
 export class CommentsGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {

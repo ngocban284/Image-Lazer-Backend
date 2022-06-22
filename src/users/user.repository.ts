@@ -13,6 +13,7 @@ import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
+import { Follow } from 'src/follows/entities/follow.entity';
 import { Inject } from '@nestjs/common';
 import * as sizeOf from 'image-size';
 import * as bcrypt from 'bcrypt';
@@ -22,7 +23,48 @@ export class UserRepository {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
+    @InjectModel(Follow.name) private readonly followModel: Model<Follow>,
   ) { }
+
+  async attachFollower(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+    const follow = await this.followModel
+      .find({ followed_user_id: parserId })
+      .populate({
+        path: 'user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    const newFollow = [];
+    follow.map((item) => {
+      newFollow.push(item.user_id);
+    });
+
+    return newFollow;
+  }
+
+  async attachFollowing(user_id: Types.ObjectId) {
+    const parserId = user_id.toString();
+
+    const following = await this.followModel
+      .find({ user_id: parserId })
+      .populate({
+        path: 'followed_user_id',
+        select: '-password -refreshToken -__v -refreshTokenExpiry',
+      })
+      .lean()
+      .exec();
+
+    const newFollowing = [];
+    following.map((item) => {
+      const { _id, ...rest } = item.followed_user_id;
+      newFollowing.push({ id: _id, ...rest });
+    });
+
+    return newFollowing;
+  }
 
   async getAllUsers() {
     let users;
@@ -60,14 +102,21 @@ export class UserRepository {
   async getUserByUserName(userName: string) {
     let user;
     let postOfUser;
-    let createdImages = [];
-    let nameAlbums = [];
-    let imageAlbums = [];
+    const createdImages = [];
+    const nameAlbums = [];
+    const imageAlbums = [];
     let albumsOfUser;
-    let albums = [];
+    const albums = [];
     let topics = [];
+    let followers = [];
+    let following = [];
     try {
       user = await this.userModel.findOne({ userName });
+
+      followers = await this.attachFollower(user._id);
+
+      following = await this.attachFollowing(user._id);
+
       // console.log('user', user);
       postOfUser = await this.postModel.find({ user_id: user._id + '' });
       // console.log('postOfUser', postOfUser);
@@ -80,18 +129,16 @@ export class UserRepository {
           width: post.image_width,
         });
       });
-      // console.log('createdImage', createdImages);
+
       topics = user.topics;
 
       albumsOfUser = await this.albumModel
         .find({ user_id: user._id + '' })
         .populate('post_id');
-      // console.log('album of user', albumsOfUser);
-      // console.log('createdImage', createdImages);
+
       albumsOfUser.map((album) => {
-        // console.log(album);
         nameAlbums.push(album.name);
-        // console.log(album.post_id.length);
+
         if (album.post_id.length >= 1) {
           imageAlbums.push(album.post_id[album.post_id.length - 1].image);
           albums.push({
@@ -106,12 +153,12 @@ export class UserRepository {
               width: album.post_id[album.post_id.length - 1].image_width,
             },
           });
-
-          // console.log(albums);
         } else {
           albums.push({
             id: album._id,
             name: album.name,
+            description: album.description,
+            secret: album.secret,
             image: {
               name: 'default_avatar_album.png',
               src: '/uploads/default_avatar_album.png',
@@ -121,13 +168,10 @@ export class UserRepository {
           });
         }
       });
-      // console.log(imageAlbums);
-      // console.log('createdImage', createdImages);
     } catch {
       throw new InternalServerErrorException();
     }
-    return { user, createdImages, albums, topics };
-    // return albumsOfUser;
+    return { user, createdImages, albums, topics, followers, following };
   }
 
   async createUser(createUserDto: CreateUserDto, session: ClientSession) {
@@ -146,8 +190,7 @@ export class UserRepository {
       userName,
     });
 
-    // create default album
-    let album = new this.albumModel({
+    const album = new this.albumModel({
       user_id: user._id + '',
       name: 'Album mặc định',
       description: '',
@@ -157,7 +200,7 @@ export class UserRepository {
     const allUser = await this.getAllUsers();
 
     userName = userName + '_' + allUser.length;
-    // console.log(userName);
+
     await user.save();
     const newUser = await this.userModel.findByIdAndUpdate(
       user.id,
@@ -179,7 +222,7 @@ export class UserRepository {
     updateUserDto: UpdateUserDto,
     session: ClientSession,
   ) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -206,7 +249,7 @@ export class UserRepository {
     session: ClientSession,
   ) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           avatar: avatar,
@@ -233,7 +276,7 @@ export class UserRepository {
   ) {
     try {
       // console.log(updateTopic.topic);
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         { topics: updateTopic.topic },
         { new: true, session },
@@ -250,7 +293,7 @@ export class UserRepository {
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
-    let user = await this.getUserById(id);
+    const user = await this.getUserById(id);
 
     if (!user) {
       throw new NotFoundException();
@@ -271,7 +314,7 @@ export class UserRepository {
     refreshTokenExpiry: number,
   ) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: refreshToken,
@@ -289,7 +332,7 @@ export class UserRepository {
 
   async deleteRefreshToken(user_id: Types.ObjectId) {
     try {
-      let user = await this.userModel.findOneAndUpdate(
+      const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
         {
           refreshToken: null,

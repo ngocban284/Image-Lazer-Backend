@@ -46,6 +46,10 @@ export class AlbumsService {
     return await this.albumRepository.getAlbumByUser(user_id);
   }
 
+  async getAlbumById(album_id: Types.ObjectId) {
+    return await this.albumRepository.getAlbumById(album_id);
+  }
+
   async updateAlbum(
     user_id: Types.ObjectId,
     album_id: Types.ObjectId,
@@ -60,17 +64,23 @@ export class AlbumsService {
     );
   }
 
-  async deleteAlbum(
+  async deletePostOfAlbum(
     user_id: Types.ObjectId,
-    post_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
-    return await this.albumRepository.deleteAlbum(
+    return await this.albumRepository.deletePostOfAlbum(
       user_id,
-      post_id,
       deletePost,
       session,
     );
+  }
+
+  async deleteAlbum(
+    user_id: Types.ObjectId,
+    album_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
+    return await this.albumRepository.deleteAlbum(user_id, album_id, session);
   }
 }

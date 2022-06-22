@@ -11,6 +11,7 @@ import { UpdateAlbumDto } from './dto/updateAlbum.dto';
 import { DeletePostOfAlbumDto } from './dto/deletePostOfAlbum.dto';
 import { CreateAlbumDto } from './dto/createAlbum.dto';
 import { Album } from './entities/album.entity';
+import { Post } from 'src/posts/entities/post.entity';
 import { SavePost } from 'src/savePosts/entities/savepost.entity';
 import { PostRepository } from 'src/posts/posts.repository';
 
@@ -18,6 +19,7 @@ export class AlbumRepository {
   constructor(
     @InjectModel(Album.name) private readonly albumModel: Model<Album>,
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
+    @InjectModel(Post.name) private readonly postModel: Model<Post>,
     private readonly postRepository: PostRepository,
   ) {}
 
@@ -147,6 +149,42 @@ export class AlbumRepository {
     }
   }
 
+  async getAlbumById(album_id: Types.ObjectId) {
+    try {
+      let album: any = await this.albumModel
+        .findById({ _id: album_id + '' })
+        .populate({
+          path: 'post_id',
+          select: '_id  image image_height image_width ',
+        })
+        .populate({
+          path: 'user_id',
+          select: 'userName fullName',
+        });
+
+      let newAlbum = {
+        name: album.name,
+        description: album.description,
+        secret: album.secret,
+        userName: album.user_id.userName,
+        fullName: album.user_id.fullName,
+        images: album.post_id.map((post) => {
+          return {
+            id: post._id,
+            name: post.image,
+            src: `/uploads/${post.image}`,
+            height: post.image_height,
+            width: post.image_width,
+          };
+        }),
+      };
+
+      return newAlbum;
+    } catch (error) {
+      throw new NotFoundException();
+    }
+  }
+
   async getAlbumByUser(user_id: Types.ObjectId) {
     try {
       let albums = [];
@@ -193,15 +231,22 @@ export class AlbumRepository {
     session: ClientSession,
   ) {
     try {
-      let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { _id: album_id }],
-      });
-      if (album) {
+      let album = await this.albumModel.findById({ _id: album_id + '' });
+
+      if (album.user_id.toString() == user_id.toString()) {
+        console.log(updateAlbumDto);
         album = await this.albumModel.findByIdAndUpdate(
-          album_id,
-          updateAlbumDto,
-          { new: true, session: session },
+          { _id: album._id + '' },
+          {
+            $set: {
+              name: updateAlbumDto.name,
+              description: updateAlbumDto.description,
+              secret: updateAlbumDto.secret,
+            },
+          },
+          { session: session, new: true },
         );
+
         return album;
       } else {
         throw new NotFoundException();
@@ -211,32 +256,74 @@ export class AlbumRepository {
     }
   }
 
-  async deleteAlbum(
+  async deletePostOfAlbum(
     user_id: Types.ObjectId,
-    album_id: Types.ObjectId,
     deletePost: DeletePostOfAlbumDto,
     session: ClientSession,
   ) {
     try {
       let album = await this.albumModel.findOne({
-        $and: [{ user_id: user_id }, { _id: album_id }],
+        $and: [{ user_id: user_id + '' }, { name: deletePost.album }],
       });
 
       if (album) {
         album = await this.albumModel.findByIdAndUpdate(
           {
-            _id: album_id,
+            _id: album._id + '',
           },
           { $pull: { post_id: deletePost.post_id } },
           { new: true, session: session },
         );
-        let newAlbum = await this.albumModel.findById({ _id: album._id });
-        await this.savePostModel.findOneAndDelete({ album_id: album_id });
-        return newAlbum;
+        // let newAlbum = await this.albumModel.findById({ _id: album._id + '' });
+
+        return album;
       } else {
         throw new NotFoundException();
       }
     } catch {
+      throw new InternalServerErrorException();
+    }
+  }
+
+  async deleteAlbum(
+    user_id: Types.ObjectId,
+    album_id: Types.ObjectId,
+    session: ClientSession,
+  ) {
+    try {
+      let album = await this.albumModel
+        .findById({ _id: album_id + '' })
+        .populate('post_id');
+
+      let notRemovePostId = [];
+      let removePostId = [];
+      album.post_id.map((post: any) => {
+        if (post.user_id != user_id + '') {
+          notRemovePostId.push(post._id);
+        } else {
+          removePostId.push(post._id);
+        }
+      });
+
+      // remove post of album
+      await this.albumModel.findByIdAndUpdate(
+        { _id: album._id + '' },
+        { $pull: { post_id: notRemovePostId } },
+      );
+
+      // remove post of user
+      for (let i = 0; i < removePostId.length; i++) {
+        await this.postModel.findByIdAndDelete({ _id: removePostId[i] + '' });
+      }
+
+      // remove album
+      await this.albumModel.findByIdAndDelete({ _id: album._id + '' });
+
+      // console.log('removePostId', removePostId);
+      // await this.albumModel.findByIdAndDelete(album._id);
+
+      return album;
+    } catch (error) {
       throw new InternalServerErrorException();
     }
   }

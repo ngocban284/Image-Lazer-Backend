@@ -16,6 +16,7 @@ import { InjectConnection } from '@nestjs/mongoose';
 import { SavePostService } from './saveposts.service';
 import { SavePostDto } from './dto/savepost.dto';
 import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
+import { AddPostToAlbumDto } from './dto/addPostToAlbum.dto';
 
 @Controller('saveposts')
 @UseGuards(JwtGuard)
@@ -26,8 +27,8 @@ export class SavePostController {
   ) {}
 
   @Post()
-  async createSavePost(
-    @Body() savePostDto: SavePostDto,
+  async addPostToAlbum(
+    @Body() addPostToAlbumDto: AddPostToAlbumDto,
     @Req() request,
     @Res() res: Response,
   ) {
@@ -35,18 +36,23 @@ export class SavePostController {
     session.startTransaction();
 
     try {
-      const savePost = await this.savePostService.createSavePost(
+      const albumOfUser = await this.savePostService.addPostToAlbum(
         request.user._id,
-        savePostDto,
+        addPostToAlbumDto,
         session,
       );
       await session.commitTransaction();
-      return res.status(HttpStatus.OK).json(savePost);
-    } catch {
+      res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Lưu ảnh thành công !', albumOfUser });
+    } catch (error) {
       await session.abortTransaction();
-      throw new Error();
+      res
+
+        .status(HttpStatus.ACCEPTED)
+        .json({ errorCode: 1, message: 'Lưu ảnh thất bại !' });
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 
