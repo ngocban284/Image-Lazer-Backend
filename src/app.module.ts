@@ -1,6 +1,5 @@
-import { CommentsGateway } from './comments/comments.gateway';
+import { CommentsModule } from './comments1/comments.module';
 import { ConfigModule } from './config/config.module';
-import { CommentsModule } from './comments/comments.module';
 import { PostsModule } from './posts/posts.module';
 import { LikesModule } from './likes/likes.module';
 import { AlbumsModule } from './albums/albums.module';
@@ -23,9 +22,9 @@ import { join } from 'path';
         configService.getMongoConfig(),
     }),
     UsersModule,
-    CommentsModule,
     FollowsModule,
     ChatModule,
+    CommentsModule,
     PostsModule,
     LikesModule,
     AlbumsModule,
