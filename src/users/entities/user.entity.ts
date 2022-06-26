@@ -1,6 +1,8 @@
+import { Post } from '../../posts/entities/post.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -45,6 +47,23 @@ export class User extends Document {
 
   @Prop({ required: false })
   topics: string[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: User.name }] })
+  markMessageAsUnread: mongoose.Types.ObjectId[];
+
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: Post.name }] })
+  // markLikeAsUnread: mongoose.Types.ObjectId[];
+
+  @Prop({ type: Object, default: { likes: [], comments: [] } })
+  markNotificationAsUnread: {
+    likes: [];
+    comments: [
+      {
+        userName: string;
+        imageId: string;
+      },
+    ];
+  };
 
   @Prop({ required: false })
   refreshToken: string;

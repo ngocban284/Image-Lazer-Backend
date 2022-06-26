@@ -9,6 +9,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { DirectCommentDto } from './dto/direct-comment.dto';
+import { DirectNotificationCommentDto } from './dto/direct-notification-comment.dto';
 
 @WebSocketGateway({
   cors: {
@@ -31,7 +32,19 @@ export class CommentGateway {
 
   @SubscribeMessage('directCommentHistory')
   directCommentHistory(@MessageBody() data: DirectCommentHistoryDto) {
-    console.log('directCommentHistory', data);
     this.commentService.directCommentHistoryHandler(data);
+  }
+
+  @SubscribeMessage('directNotificationComment')
+  directNotificationComment(
+    @MessageBody() data: DirectNotificationCommentDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.commentService.directNotificationComment(client, data);
+  }
+
+  @SubscribeMessage('deleteNotification')
+  deleteNotification(@ConnectedSocket() client: Socket) {
+    this.commentService.deleteNotification(client);
   }
 }

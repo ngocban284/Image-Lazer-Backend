@@ -7,12 +7,14 @@ import { Injectable } from '@nestjs/common';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { InjectModel } from '@nestjs/mongoose';
 import { Message, MessageDocument } from './entities/message.entity';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import {
   Conversation,
   ConversationDocument,
 } from '../conversation/entities/conversation.entity';
 import { User } from 'src/users/entities/user.entity';
+import { DirectNotificationMessageDto } from './dto/direct-notification-message.dto';
+import * as _ from 'lodash';
 
 @Injectable()
 @WebSocketGateway({
@@ -137,6 +139,46 @@ export class MessageService {
           });
         });
       });
+    }
+  };
+
+  directNotificationMessage = async (
+    client: Socket,
+    data: DirectNotificationMessageDto,
+  ) => {
+    const { user_id: userId } = client.data.user;
+
+    const receiverUserId = data.toString();
+
+    const receiverUser = await this.userModel.findById(receiverUserId);
+    if (!receiverUser.markMessageAsUnread.includes(userId)) {
+      receiverUser.markMessageAsUnread.push(userId);
+      await receiverUser.save();
+      const clientId =
+        this.chatService.getActiveConnectionOfUser(receiverUserId);
+      return this.server.to(clientId).emit('notification');
+    }
+  };
+
+  deleteNotificationMessage = async (
+    client: Socket,
+    data: DirectNotificationMessageDto,
+  ) => {
+    const { user_id: userId } = client.data.user;
+
+    const receiverUserId = data.toString();
+
+    if (receiverUserId !== '') {
+      const user = await this.userModel.findById(userId);
+      const receiverId = new mongoose.Types.ObjectId(receiverUserId);
+      if (user.markMessageAsUnread.includes(receiverId)) {
+        const newMarkMessageAsUnread = user.markMessageAsUnread.filter(
+          (id) => id.toString() !== receiverId.toString(),
+        );
+        await this.userModel.findByIdAndUpdate(userId, {
+          markMessageAsUnread: newMarkMessageAsUnread,
+        });
+      }
     }
   };
 }

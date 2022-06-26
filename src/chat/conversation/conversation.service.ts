@@ -40,26 +40,28 @@ export class ConversationService {
               ? conversation.participants[1]
               : conversation.participants[0];
           const user = await this.userModel.findById(userId);
-          const {
-            _id: id,
-            userName,
-            fullName,
-            age,
-            email,
-            avatar,
-            follower_count,
-            following_count,
-          } = user;
-          setUsersSend.add({
-            id,
-            userName,
-            fullName,
-            age,
-            email,
-            avatar,
-            follower_count,
-            following_count,
-          });
+          if (user) {
+            const {
+              _id: id,
+              userName,
+              fullName,
+              age,
+              email,
+              avatar,
+              follower_count,
+              following_count,
+            } = user;
+            setUsersSend.add({
+              id,
+              userName,
+              fullName,
+              age,
+              email,
+              avatar,
+              follower_count,
+              following_count,
+            });
+          }
         }),
       );
       const usersSend = Array.from(setUsersSend);

@@ -1,3 +1,4 @@
+import { ChatService } from './../../chat/chat.service';
 import { User } from './../../users/entities/user.entity';
 import {
   ImageComments,
@@ -11,7 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Comment1, CommentDocument } from './entities/comment.entity';
 import { Model } from 'mongoose';
 import { DirectCommentHistoryDto } from './dto/direct-comment-history.dto';
-
+import { DirectNotificationCommentDto } from './dto/direct-notification-comment.dto';
 @Injectable()
 @WebSocketGateway({
   cors: {
@@ -26,6 +27,9 @@ export class CommentService {
     private readonly commentModel: Model<CommentDocument>,
     @InjectModel(ImageComments.name)
     private readonly imageCommentsModel: Model<ImageCommentsDocument>,
+    @InjectModel(User.name)
+    private readonly userModel: Model<User>,
+    private readonly chatService: ChatService,
   ) {}
 
   directCommentHandler = async (client: Socket, data: DirectCommentDto) => {
@@ -105,6 +109,91 @@ export class CommentService {
         comments: imageComment.comments,
         imageId: imageComment.imageId,
       });
+    }
+  };
+
+  usersCommentedImage = async (imageId: string) => {
+    const users = new Set();
+    const commentedImage = await this.imageCommentsModel
+      .findOne({ imageId: imageId })
+      .populate({
+        path: 'comments',
+        model: Comment1.name,
+        select: 'author',
+        populate: {
+          path: 'author',
+          model: User.name,
+          select: 'userName _id',
+        },
+      });
+    if (commentedImage) {
+      commentedImage.comments.forEach((comment) => {
+        users.add(comment['author']._id);
+      });
+    }
+    const usersCommented = Array.from(users);
+    return usersCommented;
+  };
+
+  directNotificationComment = async (
+    client: Socket,
+    data: DirectNotificationCommentDto,
+  ) => {
+    const { user_id: userId } = client.data.user;
+
+    const imageId = data.toString();
+
+    const usersCommented = await this.usersCommentedImage(imageId);
+    const otherUsers = usersCommented.filter(
+      (user) => user.toString() !== userId.toString(),
+    );
+    const receiverUsers = await this.userModel.find({
+      _id: { $in: otherUsers },
+    });
+    if (receiverUsers && imageId !== '' && userId) {
+      const { userName } = await this.userModel.findById(userId);
+      receiverUsers.forEach(async (user) => {
+        const userComment = user.markNotificationAsUnread.comments.find(
+          (comment) =>
+            comment.imageId === imageId && comment.userName === userName,
+        );
+        if (!userComment) {
+          const newMarkCommentAsUnread = [
+            ...user.markNotificationAsUnread.comments,
+            { userName, imageId, date: new Date() },
+          ];
+          await this.userModel.findByIdAndUpdate(user._id, {
+            markNotificationAsUnread: {
+              likes: user.markNotificationAsUnread.likes,
+              comments: newMarkCommentAsUnread,
+            },
+          });
+          otherUsers.forEach((userId: string) => {
+            const clientId = this.chatService.getActiveConnectionOfUser(
+              userId.toString(),
+            );
+            this.server.to(clientId).emit('notification');
+          });
+        }
+      });
+    }
+  };
+
+  deleteNotification = async (client: Socket) => {
+    const { user_id: userId } = client.data.user;
+
+    if (userId) {
+      const user = await this.userModel.findById(userId);
+      if (user.markNotificationAsUnread.comments.length > 0) {
+        await this.userModel.findByIdAndUpdate(userId, {
+          markNotificationAsUnread: {
+            likes: [],
+            comments: [],
+          },
+        });
+      }
+      const clientId = this.chatService.getActiveConnectionOfUser(userId);
+      this.server.to(clientId).emit('notification');
     }
   };
 }

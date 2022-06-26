@@ -43,4 +43,14 @@ export class ChatService {
 
     return activeConnections;
   };
+
+  getActiveConnectionOfUser = (userId: string) => {
+    let clientId = '';
+    this.connectedUsers.forEach(function (value, key) {
+      if (value.userId === userId) {
+        clientId = key;
+      }
+    });
+    return clientId;
+  };
 }
