@@ -1,3 +1,4 @@
+import { DirectNotificationMessageDto } from './dto/direct-notification-message.dto';
 import { DirectChatHistoryDto } from './dto/direct-chat-history.dto';
 import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
@@ -35,5 +36,21 @@ export class MessageGateway {
     @ConnectedSocket() client: Socket,
   ) {
     this.messageService.directChatHistoryHandler(client, data);
+  }
+
+  @SubscribeMessage('directNotificationMessage')
+  directNotificationMessage(
+    @MessageBody() data: DirectNotificationMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.messageService.directNotificationMessage(client, data);
+  }
+
+  @SubscribeMessage('deleteNotificationMessage')
+  deleteNotificationMessage(
+    @MessageBody() data: DirectNotificationMessageDto,
+    @ConnectedSocket() client: Socket,
+  ) {
+    this.messageService.deleteNotificationMessage(client, data);
   }
 }

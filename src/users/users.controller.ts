@@ -85,6 +85,8 @@ export class UsersController {
         albums,
         followers,
         following,
+        markMessageAsUnread: user.markMessageAsUnread,
+        markNotificationAsUnread: user.markNotificationAsUnread,
       });
       // return res.status(HttpStatus.OK).json(albumsOfUser);
     } catch (error) {
@@ -151,6 +153,8 @@ export class UsersController {
         accessToken: token.accessToken,
         followers,
         following,
+        markMessageAsUnread: user.markMessageAsUnread,
+        markNotificationAsUnread: user.markNotificationAsUnread,
       });
     } catch (error) {
       return res.status(HttpStatus.BAD_REQUEST).json({
