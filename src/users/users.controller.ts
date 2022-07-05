@@ -26,6 +26,7 @@ import { JwtService } from '@nestjs/jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../config/multer.config';
 import * as sizeOf from 'image-size';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('users')
 export class UsersController {
@@ -74,6 +75,7 @@ export class UsersController {
         id: user._id,
         userName: user.userName,
         fullName: user.fullName,
+        age: user.age,
         email: user.email,
         avatar: user.avatar,
         avatar_height: user.avatar_height,
@@ -221,6 +223,7 @@ export class UsersController {
         message: 'Cập Nhật Thông Tin Người Dùng Thành Công !',
         userName: user.userName,
         fullName: user.fullName,
+        age: user.age,
         email: user.email,
         avatar: user.avatar,
         avatar_height: user.avatar_height,
@@ -233,6 +236,37 @@ export class UsersController {
       return res.status(HttpStatus.BAD_REQUEST).json({
         errorCode: 1,
         message: 'Cập Nhật Thông Tin Người Dùng Thất Bại !',
+      });
+    } finally {
+      session.endSession();
+    }
+  }
+
+  @Patch('/:id/change-password')
+  @UseGuards(JwtGuard)
+  async changePassword(
+    @Param('id') id: Types.ObjectId,
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Res() res: Response,
+  ) {
+    const session = await this.mongoConnection.startSession();
+    session.startTransaction();
+    try {
+      const user = await this.usersService.changePassword(
+        id,
+        changePasswordDto,
+        session,
+      );
+      await session.commitTransaction();
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Đổi Mật Khẩu Thành Công !',
+      });
+    } catch(error) {
+      await session.abortTransaction();
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: error.message,
       });
     } finally {
       session.endSession();
