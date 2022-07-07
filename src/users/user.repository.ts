@@ -11,6 +11,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { Follow } from 'src/follows/entities/follow.entity';
@@ -185,7 +186,6 @@ export class UserRepository {
       throw new ConflictException('Email already exists');
     }
 
-    // console.log(createUserDto);
     user = new this.userModel({
       ...createUserDto,
       userName,
@@ -230,9 +230,6 @@ export class UserRepository {
     }
 
     try {
-      if (updateUserDto.password) {
-        updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
-      }
       user.set(updateUserDto);
       await user.save({ session });
     } catch {

@@ -10,6 +10,7 @@ import { LogInUserDto } from './dto/loginUser.dto';
 import * as bcrypt from 'bcrypt';
 import * as moment from 'moment';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
+import { ChangePasswordDto } from './dto/changePassword.dto';
 const currentTime = moment();
 
 @Injectable()
@@ -56,6 +57,19 @@ export class UsersService {
       const accessToken = await this.jwtService.sign(payload);
       const generateRefreshToken = await this.generateRefreshToken(user._id);
       return { accessToken, refreshToken: generateRefreshToken };
+    } else {
+      throw new UnauthorizedException('Please check your login credentials');
+    }
+  }
+
+  async changePassword(
+    id: Types.ObjectId,
+    changePasswordDto: ChangePasswordDto,
+    session: ClientSession,
+  ) {
+    const user = await this.userRepository.getUserById(id);
+    if (user && (await bcrypt.compare(changePasswordDto.oldPassword, user.password))) {
+      return await this.userRepository.updateUser(id, { password: changePasswordDto.newPassword }, session);
     } else {
       throw new UnauthorizedException('Please check your login credentials');
     }
