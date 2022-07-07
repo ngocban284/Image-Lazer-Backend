@@ -14,15 +14,21 @@ import {
   Req,
   Body,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { GetPostDto } from './dto/getPost.dto';
 import { CreatePostDto } from './dto/createPost.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
+import { UpdatePostOwnerDto } from './dto/updatePostOwner.dto';
 import { Response } from 'express';
 import { Types, Connection } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
 import { JwtGuard } from 'src/users/jwt/guards/jwt.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../config/multer.config';
+import * as sizeOf from 'image-size';
 
 @Controller('posts')
 export class PostsController {
@@ -37,6 +43,26 @@ export class PostsController {
     res.status(HttpStatus.OK).json(posts);
   }
 
+  @Post('uploadPostImage')
+  @UseInterceptors(FileInterceptor('image', multerOptions))
+  async uploadPostImage(@UploadedFile() image, @Res() res: Response) {
+    if (!image) {
+      res.status(HttpStatus.BAD_REQUEST).json({
+        message: 'No file uploaded',
+      });
+    } else {
+      let dimensions = sizeOf.imageSize(`./uploads/${image.filename}`);
+
+      return res.status(HttpStatus.OK).json({
+        errorCode: 0,
+        message: 'Up load ảnh thành công',
+        image: image.filename,
+        image_height: dimensions.height,
+        image_width: dimensions.width,
+      });
+    }
+  }
+
   @Post()
   @UseGuards(JwtGuard)
   async createPost(
@@ -48,13 +74,13 @@ export class PostsController {
     session.startTransaction();
 
     try {
-      const post = await this.postsService.createPost(
+      const post: any = await this.postsService.createPost(
         request.user._id,
         postDto,
         session,
       );
       await session.commitTransaction();
-      res.status(HttpStatus.OK).json(post);
+      res.status(HttpStatus.OK).json({ errorCode: 0, post });
     } catch {
       await session.abortTransaction();
       throw new Error();
@@ -67,24 +93,28 @@ export class PostsController {
   @UseGuards(JwtGuard)
   async updatePost(
     @Param('id') id: Types.ObjectId,
-    @Body() postDto: UpdatePostDto,
+    @Body() postOwnerDto: UpdatePostOwnerDto,
     @Req() request,
     @Res() res: Response,
   ) {
     const session = await this.connection.startSession();
     session.startTransaction();
     try {
-      const post = await this.postsService.updatePost(
+      const post = await this.postsService.updatePostOwner(
         request.user._id,
         id,
-        postDto,
+        postOwnerDto,
         session,
       );
       await session.commitTransaction();
-      res.status(HttpStatus.OK).json(post);
+      res
+        .status(HttpStatus.OK)
+        .json({ errorCode: 0, message: 'Update Ảnh Thành Công', post });
     } catch {
       await session.abortTransaction();
-      throw new Error();
+      res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ errorCode: 1, message: 'Update Ảnh Thất Bại' });
     } finally {
       session.endSession();
     }

@@ -7,11 +7,55 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { SavePost } from './entities/savepost.entity';
 import { SavePostDto } from './dto/savepost.dto';
+import { AddPostToAlbumDto } from './dto/addPostToAlbum.dto';
+import { Album } from 'src/albums/entities/album.entity';
 
 export class SavePostRepository {
   constructor(
     @InjectModel(SavePost.name) private readonly savePostModel: Model<SavePost>,
+    @InjectModel(Album.name) private readonly albumModel: Model<Album>,
   ) {}
+
+  async addPostToAlbum(
+    user_id: Types.ObjectId,
+    addPostToAlbum: AddPostToAlbumDto,
+    session: ClientSession,
+  ) {
+    try {
+      let album = await this.albumModel.findOne({
+        $and: [{ user_id: user_id + '' }, { name: addPostToAlbum.album }],
+      });
+      // console.log('album', album);
+      if (!album) {
+        throw new Error('Album is not exist');
+      } else {
+        // add post to album
+        let updateAlbum = await this.albumModel
+          .findOneAndUpdate(
+            {
+              _id: album._id + '',
+            },
+            {
+              $push: {
+                post_id: addPostToAlbum.post_id,
+              },
+            },
+            {
+              session: session,
+              new: true,
+            },
+          )
+          .populate('post_id');
+        // console.log('updateAlbum', updateAlbum);
+
+        // all album of user
+
+        return updateAlbum;
+      }
+    } catch (error) {
+      throw new ConflictException();
+    }
+  }
 
   async createSavePost(
     user_id: Types.ObjectId,

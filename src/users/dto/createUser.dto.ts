@@ -5,13 +5,10 @@ import {
   IsOptional,
   MinLength,
   Matches,
+  Min,
 } from 'class-validator';
 
 export class CreateUserDto {
-  @IsString()
-  @IsNotEmpty()
-  userName: string;
-
   @IsString()
   @IsNotEmpty()
   fullname: string;
@@ -19,6 +16,11 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   email: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(10)
+  age: number;
 
   @IsString()
   @IsNotEmpty()
@@ -39,8 +41,4 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   avatar?: string;
-
-  @IsOptional()
-  @IsNumber()
-  follow_count?: number;
 }

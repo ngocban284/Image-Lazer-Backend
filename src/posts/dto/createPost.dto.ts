@@ -1,18 +1,29 @@
-import { IsOptional, IsString, IsNotEmpty } from 'class-validator';
+import { IsOptional, IsString, IsNotEmpty, IsNumber } from 'class-validator';
 import { Schema as MongoSchema, Types } from 'mongoose';
 
 export class CreatePostDto {
+  @IsOptional()
+  album: string;
+
   @IsString()
-  @IsNotEmpty()
-  photo_url: string;
+  image: string;
+
+  @IsNumber()
+  image_height: number;
+
+  @IsNumber()
+  image_width: number;
 
   @IsString()
   description: string;
 
   @IsString()
-  website: string;
+  link: string;
+
+  @IsString()
+  title: string;
 
   @IsString()
   @IsNotEmpty()
-  tags: string;
+  topic: string;
 }

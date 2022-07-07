@@ -9,10 +9,12 @@ import { Comment } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/createComment.dto';
 import { GetCommentDto } from './dto/getComment.dto';
 import { UpdateCommentDto } from './dto/updateComment.dto';
+import { CommentsGateway } from './comments.gateway';
 
 export class CommentRepository {
   constructor(
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
+    private commentsGateway: CommentsGateway,
   ) {}
 
   async createComment(
@@ -23,6 +25,7 @@ export class CommentRepository {
     try {
       let comment = new this.commentModel(commentDto, user_id);
       await comment.save({ session: session });
+      this.commentsGateway.onCreateComment(comment);
       return comment;
     } catch (error) {
       throw new InternalServerErrorException();
@@ -63,6 +66,7 @@ export class CommentRepository {
           updateCommentDto,
           { new: true, session: session },
         );
+        this.commentsGateway.onUpdateComment(comment);
         return comment;
       } else {
         throw new ConflictException();
@@ -86,6 +90,7 @@ export class CommentRepository {
         comment = await this.commentModel.findByIdAndDelete(comment_id, {
           session: session,
         });
+        this.commentsGateway.onDeleteComment(comment);
         return comment;
       } else {
         throw new ConflictException();

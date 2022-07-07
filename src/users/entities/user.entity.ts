@@ -1,6 +1,8 @@
+import { Post } from '../../posts/entities/post.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -9,6 +11,9 @@ export class User extends Document {
 
   @Prop({ required: true })
   fullName: string;
+
+  @Prop({ required: true })
+  age: number;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -24,13 +29,41 @@ export class User extends Document {
 
   @Prop({
     required: false,
-    default:
-      'https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg',
+    default: 'default_avatar.png',
   })
   avatar: string;
 
+  @Prop({ required: false })
+  avatar_height: number;
+
+  @Prop({ required: false })
+  avatar_width: number;
+
   @Prop({ required: false, default: 0 })
-  follow_count: number;
+  following_count: number;
+
+  @Prop({ required: false, default: 0 })
+  follower_count: number;
+
+  @Prop({ required: false })
+  topics: string[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: User.name }] })
+  markMessageAsUnread: mongoose.Types.ObjectId[];
+
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: Post.name }] })
+  // markLikeAsUnread: mongoose.Types.ObjectId[];
+
+  @Prop({ type: Object, default: { likes: [], comments: [] } })
+  markNotificationAsUnread: {
+    likes: [];
+    comments: [
+      {
+        userName: string;
+        imageId: string;
+      },
+    ];
+  };
 
   @Prop({ required: false })
   refreshToken: string;
