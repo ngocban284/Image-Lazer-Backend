@@ -5,6 +5,7 @@ import { UserRepository } from './user.repository';
 import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UpdateUserTopicDto } from './dto/updateTopic.dto';
+import { SearchUserDto } from './dto/searchUser.dto';
 import { JwtPayload } from './jwt/interfaces/jwt-payload.interface';
 import { LogInUserDto } from './dto/loginUser.dto';
 import * as bcrypt from 'bcrypt';
@@ -15,10 +16,7 @@ const currentTime = moment();
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private readonly userRepository: UserRepository,
-    private jwtService: JwtService,
-  ) {}
+  constructor(private readonly userRepository: UserRepository, private jwtService: JwtService) {}
 
   async attachFollower(user_id: Types.ObjectId) {
     return await this.userRepository.attachFollower(user_id);
@@ -62,11 +60,7 @@ export class UsersService {
     }
   }
 
-  async changePassword(
-    id: Types.ObjectId,
-    changePasswordDto: ChangePasswordDto,
-    session: ClientSession,
-  ) {
+  async changePassword(id: Types.ObjectId, changePasswordDto: ChangePasswordDto, session: ClientSession) {
     const user = await this.userRepository.getUserById(id);
     if (user && (await bcrypt.compare(changePasswordDto.oldPassword, user.password))) {
       return await this.userRepository.updateUser(id, { password: changePasswordDto.newPassword }, session);
@@ -75,40 +69,16 @@ export class UsersService {
     }
   }
 
-  async updateUser(
-    id: Types.ObjectId,
-    updateUserDto: UpdateUserDto,
-    session: ClientSession,
-  ) {
+  async updateUser(id: Types.ObjectId, updateUserDto: UpdateUserDto, session: ClientSession) {
     return await this.userRepository.updateUser(id, updateUserDto, session);
   }
 
-  async updateAvatar(
-    user_id: Types.ObjectId,
-    avatar: string,
-    avatar_height: number,
-    avatar_width: number,
-    session: ClientSession,
-  ) {
-    return await this.userRepository.updateAvatar(
-      user_id,
-      avatar,
-      avatar_height,
-      avatar_width,
-      session,
-    );
+  async updateAvatar(user_id: Types.ObjectId, avatar: string, avatar_height: number, avatar_width: number, session: ClientSession) {
+    return await this.userRepository.updateAvatar(user_id, avatar, avatar_height, avatar_width, session);
   }
 
-  async updateTopicsOfUser(
-    user_id: Types.ObjectId,
-    updateTopic: UpdateUserTopicDto,
-    session: ClientSession,
-  ) {
-    return await this.userRepository.updateTopicsOfUser(
-      user_id,
-      updateTopic,
-      session,
-    );
+  async updateTopicsOfUser(user_id: Types.ObjectId, updateTopic: UpdateUserTopicDto, session: ClientSession) {
+    return await this.userRepository.updateTopicsOfUser(user_id, updateTopic, session);
   }
 
   async deleteUser(id: Types.ObjectId, session: ClientSession) {
@@ -120,11 +90,7 @@ export class UsersService {
     // console.log(currentTime.unix());
     const payload: any = this.jwtService.decode(refreshtoken);
     // console.log(payload.exp, typeof payload.exp);
-    await this.userRepository.saveOrUpdateRefreshToken(
-      user_id,
-      refreshtoken,
-      payload.exp,
-    );
+    await this.userRepository.saveOrUpdateRefreshToken(user_id, refreshtoken, payload.exp);
     return refreshtoken;
   }
 
@@ -134,5 +100,9 @@ export class UsersService {
 
   async home(user_id: Types.ObjectId) {
     return await this.userRepository.home(user_id);
+  }
+
+  async searchUser(searchUserDto: SearchUserDto) {
+    return await this.userRepository.searchUser(searchUserDto);
   }
 }

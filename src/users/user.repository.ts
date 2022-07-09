@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  forwardRef,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, forwardRef, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Schema as MongoSchema, ClientSession, Types } from 'mongoose';
 import { User } from './entities/user.entity';
@@ -12,6 +7,7 @@ import { UpdateUserDto } from './dto/updateUser.dto';
 import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { UpdateRefreshTokenDto } from './dto/updateRefreshToken.dto';
 import { ChangePasswordDto } from './dto/changePassword.dto';
+import { SearchUserDto } from './dto/searchUser.dto';
 import { Post } from 'src/posts/entities/post.entity';
 import { Album } from 'src/albums/entities/album.entity';
 import { Follow } from 'src/follows/entities/follow.entity';
@@ -40,7 +36,7 @@ export class UserRepository {
       .exec();
 
     const newFollow = [];
-    follow.map((item) => {
+    follow.map(item => {
       newFollow.push(item.user_id);
     });
 
@@ -60,7 +56,7 @@ export class UserRepository {
       .exec();
 
     const newFollowing = [];
-    following.map((item) => {
+    following.map(item => {
       const { _id, ...rest } = item.followed_user_id;
       newFollowing.push({ id: _id, ...rest });
     });
@@ -122,7 +118,7 @@ export class UserRepository {
       // console.log('user', user);
       postOfUser = await this.postModel.find({ user_id: user._id + '' });
       // console.log('postOfUser', postOfUser);
-      postOfUser.map((post) => {
+      postOfUser.map(post => {
         createdImages.push({
           id: post._id + '',
           name: post.name,
@@ -134,11 +130,9 @@ export class UserRepository {
 
       topics = user.topics;
 
-      albumsOfUser = await this.albumModel
-        .find({ user_id: user._id + '' })
-        .populate('post_id');
+      albumsOfUser = await this.albumModel.find({ user_id: user._id + '' }).populate('post_id');
 
-      albumsOfUser.map((album) => {
+      albumsOfUser.map(album => {
         nameAlbums.push(album.name);
 
         if (album.post_id.length >= 1) {
@@ -203,11 +197,7 @@ export class UserRepository {
     userName = userName + '_' + allUser.length;
 
     await user.save();
-    const newUser = await this.userModel.findByIdAndUpdate(
-      user.id,
-      { userName: userName },
-      { new: true },
-    );
+    const newUser = await this.userModel.findByIdAndUpdate(user.id, { userName: userName }, { new: true });
 
     try {
       await album.save({ session });
@@ -218,11 +208,7 @@ export class UserRepository {
     }
   }
 
-  async updateUser(
-    id: Types.ObjectId,
-    updateUserDto: UpdateUserDto,
-    session: ClientSession,
-  ) {
+  async updateUser(id: Types.ObjectId, updateUserDto: UpdateUserDto, session: ClientSession) {
     const user = await this.getUserById(id);
 
     if (!user) {
@@ -239,13 +225,7 @@ export class UserRepository {
     return user;
   }
 
-  async updateAvatar(
-    user_id: Types.ObjectId,
-    avatar: string,
-    avatar_height: number,
-    avatar_width: number,
-    session: ClientSession,
-  ) {
+  async updateAvatar(user_id: Types.ObjectId, avatar: string, avatar_height: number, avatar_width: number, session: ClientSession) {
     try {
       const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
@@ -267,18 +247,10 @@ export class UserRepository {
     }
   }
 
-  async updateTopicsOfUser(
-    user_id: Types.ObjectId,
-    updateTopic: UpdateUserTopicDto,
-    session: ClientSession,
-  ) {
+  async updateTopicsOfUser(user_id: Types.ObjectId, updateTopic: UpdateUserTopicDto, session: ClientSession) {
     try {
       // console.log(updateTopic.topic);
-      const user = await this.userModel.findOneAndUpdate(
-        { _id: user_id },
-        { topics: updateTopic.topic },
-        { new: true, session },
-      );
+      const user = await this.userModel.findOneAndUpdate({ _id: user_id }, { topics: updateTopic.topic }, { new: true, session });
 
       if (!user) {
         throw new NotFoundException();
@@ -306,11 +278,7 @@ export class UserRepository {
     return user;
   }
 
-  async saveOrUpdateRefreshToken(
-    user_id: Types.ObjectId,
-    refreshToken: string,
-    refreshTokenExpiry: number,
-  ) {
+  async saveOrUpdateRefreshToken(user_id: Types.ObjectId, refreshToken: string, refreshTokenExpiry: number) {
     try {
       const user = await this.userModel.findOneAndUpdate(
         { _id: user_id },
@@ -386,7 +354,7 @@ export class UserRepository {
       let userFollows = [];
       let postOfUserFollow = [];
 
-      follows.map((follow) => {
+      follows.map(follow => {
         userFollows.push(follow.followed_user_id._id + '');
       });
       // console.log('userFollows: ', userFollows);
@@ -417,6 +385,31 @@ export class UserRepository {
       // console.log('all post', allPost);
 
       return posts;
+    } catch (error) {
+      throw new InternalServerErrorException(error);
+    }
+  }
+
+  async searchUser(searchDto: SearchUserDto) {
+    try {
+      let user = await this.userModel
+        .find({
+          $or: [{ fullName: { $regex: searchDto.user, $options: 'i' } }, { userName: { $regex: searchDto.user, $options: 'i' } }],
+        })
+        .select('-password -refreshToken -__v -refreshTokenExpiry -createdAt -updatedAt')
+        .lean()
+        .exec();
+
+      // console.log(user);
+      let users = [];
+      user.map(user => {
+        users.push({
+          avatarSrc: `/uploads/${user.avatar}`,
+          fullName: user.fullName,
+          userName: user.userName,
+        });
+      });
+      return users;
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

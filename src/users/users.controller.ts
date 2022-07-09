@@ -1,18 +1,4 @@
-import {
-  Body,
-  Res,
-  Req,
-  HttpStatus,
-  Param,
-  Controller,
-  Delete,
-  Get,
-  Post,
-  Patch,
-  UseGuards,
-  UseInterceptors,
-  UploadedFile,
-} from '@nestjs/common';
+import { Body, Res, Req, HttpStatus, Param, Controller, Delete, Get, Post, Patch, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -21,6 +7,7 @@ import { CreateUserDto } from './dto/createUser.dto';
 import { UpdateUserDto } from './dto/updateUser.dto';
 import { UpdateUserTopicDto } from './dto/updateTopic.dto';
 import { LogInUserDto } from './dto/loginUser.dto';
+import { SearchUserDto } from './dto/searchUser.dto';
 import { JwtGuard } from './jwt/guards/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -30,11 +17,7 @@ import { ChangePasswordDto } from './dto/changePassword.dto';
 
 @Controller('users')
 export class UsersController {
-  constructor(
-    @InjectConnection() private readonly mongoConnection: Connection,
-    private usersService: UsersService,
-    private jwtService: JwtService,
-  ) {}
+  constructor(@InjectConnection() private readonly mongoConnection: Connection, private usersService: UsersService, private jwtService: JwtService) {}
 
   @Get('/home')
   @UseGuards(JwtGuard)
@@ -42,13 +25,22 @@ export class UsersController {
     try {
       const posts = await this.usersService.home(request.user._id);
       //   console.log(request.user._id);
-      return res
-        .status(HttpStatus.OK)
-        .json({ errorCode: 0, message: 'Tải trang chủ thành công !', posts });
+      return res.status(HttpStatus.OK).json({ errorCode: 0, message: 'Tải trang chủ thành công !', posts });
     } catch (err) {
-      return res
-        .status(HttpStatus.OK)
-        .json({ errorCode: 1, message: 'Tải trang chủ thất bại !' });
+      return res.status(HttpStatus.OK).json({ errorCode: 1, message: 'Tải trang chủ thất bại !' });
+    }
+  }
+
+  @Post('/search')
+  async searchUser(@Body() searchUserDto: SearchUserDto, @Res() res: Response) {
+    try {
+      const users = await this.usersService.searchUser(searchUserDto);
+      return res.status(HttpStatus.OK).json({ errorCode: 0, users });
+    } catch (error) {
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        errorCode: 1,
+        message: 'Tìm Kiếm Người Dùng Thất Bại !',
+      });
     }
   }
 
@@ -60,14 +52,10 @@ export class UsersController {
   }
 
   @Get('/:user_name')
-  async getUserByUserName(
-    @Param('user_name') user_name: string,
-    @Res() res: Response,
-  ) {
+  async getUserByUserName(@Param('user_name') user_name: string, @Res() res: Response) {
     // console.log(request.user);
     try {
-      const { user, createdImages, albums, topics, followers, following } =
-        await this.usersService.getUserByUserName(user_name);
+      const { user, createdImages, albums, topics, followers, following } = await this.usersService.getUserByUserName(user_name);
 
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
@@ -196,31 +184,19 @@ export class UsersController {
   async logOut(@Req() request, @Res() res: Response) {
     try {
       res.clearCookie('refreshToken');
-      return res
-        .status(HttpStatus.OK)
-        .json({ errorCode: 0, message: 'Đăng Xuất Thành Công !' });
+      return res.status(HttpStatus.OK).json({ errorCode: 0, message: 'Đăng Xuất Thành Công !' });
     } catch (error) {
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ errorCode: 1, message: 'Đăng Xuất Thất Bại !' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ errorCode: 1, message: 'Đăng Xuất Thất Bại !' });
     }
   }
 
   @Patch('/:id')
   @UseGuards(JwtGuard)
-  async updateUser(
-    @Param('id') id: Types.ObjectId,
-    @Body() updateUserDto: UpdateUserDto,
-    @Res() res: Response,
-  ) {
+  async updateUser(@Param('id') id: Types.ObjectId, @Body() updateUserDto: UpdateUserDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
-      const user = await this.usersService.updateUser(
-        id,
-        updateUserDto,
-        session,
-      );
+      const user = await this.usersService.updateUser(id, updateUserDto, session);
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
@@ -248,25 +224,17 @@ export class UsersController {
 
   @Patch('/:id/change-password')
   @UseGuards(JwtGuard)
-  async changePassword(
-    @Param('id') id: Types.ObjectId,
-    @Body() changePasswordDto: ChangePasswordDto,
-    @Res() res: Response,
-  ) {
+  async changePassword(@Param('id') id: Types.ObjectId, @Body() changePasswordDto: ChangePasswordDto, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
-      const user = await this.usersService.changePassword(
-        id,
-        changePasswordDto,
-        session,
-      );
+      const user = await this.usersService.changePassword(id, changePasswordDto, session);
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
         message: 'Đổi Mật Khẩu Thành Công !',
       });
-    } catch(error) {
+    } catch (error) {
       await session.abortTransaction();
       return res.status(HttpStatus.BAD_REQUEST).json({
         errorCode: 1,
@@ -280,24 +248,14 @@ export class UsersController {
   @Patch('/upload/:user_id')
   @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('avatar', multerOptions))
-  async uploadAvatar(
-    @Param('user_id') user_id: Types.ObjectId,
-    @UploadedFile() avatar,
-    @Res() res: Response,
-  ) {
+  async uploadAvatar(@Param('user_id') user_id: Types.ObjectId, @UploadedFile() avatar, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
       const avatarHash = avatar.filename;
       const demension = sizeOf.imageSize(`./uploads/${avatarHash}`);
       // console.log(demension.height, demension.width);
-      const user = await this.usersService.updateAvatar(
-        user_id,
-        avatarHash,
-        demension.height,
-        demension.width,
-        session,
-      );
+      const user = await this.usersService.updateAvatar(user_id, avatarHash, demension.height, demension.width, session);
 
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({
@@ -309,9 +267,7 @@ export class UsersController {
       });
     } catch {
       await session.abortTransaction();
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ errorCode: 1, message: 'Cập Nhật Avatar Thất Bại !' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ errorCode: 1, message: 'Cập Nhật Avatar Thất Bại !' });
     } finally {
       session.endSession();
     }
@@ -319,20 +275,12 @@ export class UsersController {
 
   @Patch('/uploadTopic/topics')
   @UseGuards(JwtGuard)
-  async updateTopics(
-    @Body() updateTopicsDto: UpdateUserTopicDto,
-    @Req() request,
-    @Res() res: Response,
-  ) {
+  async updateTopics(@Body() updateTopicsDto: UpdateUserTopicDto, @Req() request, @Res() res: Response) {
     const session = await this.mongoConnection.startSession();
     session.startTransaction();
     try {
       console.log(updateTopicsDto.topic);
-      const user = await this.usersService.updateTopicsOfUser(
-        request.user._id,
-        updateTopicsDto,
-        session,
-      );
+      const user = await this.usersService.updateTopicsOfUser(request.user._id, updateTopicsDto, session);
       await session.commitTransaction();
       return res.status(HttpStatus.OK).json({
         errorCode: 0,
@@ -358,14 +306,10 @@ export class UsersController {
     try {
       const user = await this.usersService.deleteUser(id, session);
       await session.commitTransaction();
-      return res
-        .status(HttpStatus.OK)
-        .json({ data: user, message: 'Xóa Người Dùng Thành Công !' });
+      return res.status(HttpStatus.OK).json({ data: user, message: 'Xóa Người Dùng Thành Công !' });
     } catch {
       await session.abortTransaction();
-      return res
-        .status(HttpStatus.BAD_REQUEST)
-        .json({ message: 'Xóa Người Dùng Thất Bại !' });
+      return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Xóa Người Dùng Thất Bại !' });
     } finally {
       session.endSession();
     }

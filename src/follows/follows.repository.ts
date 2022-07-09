@@ -48,6 +48,7 @@ export class FollowRepository {
     });
     // console.log(followed);
 
+    
     if (followed) {
       try {
         await this.followModel.deleteOne(
