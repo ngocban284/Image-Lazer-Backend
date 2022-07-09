@@ -15,6 +15,7 @@ import { Inject } from '@nestjs/common';
 import * as sizeOf from 'image-size';
 import * as bcrypt from 'bcrypt';
 import * as _ from 'lodash';
+import * as regex from './untils/regex';
 
 export class UserRepository {
   constructor(
@@ -392,18 +393,25 @@ export class UserRepository {
 
   async searchUser(searchDto: SearchUserDto) {
     try {
-      let user = await this.userModel
+      let user1 = await this.userModel
         .find({
-          $or: [{ fullName: { $regex: searchDto.user, $options: 'i' } }, { userName: { $regex: searchDto.user, $options: 'i' } }],
+          $or: [
+            { fullName: { $regex: regex.diacriticSensitiveRegex(`${searchDto.user}`), $options: 'i' } },
+            { userName: { $regex: regex.diacriticSensitiveRegex(`${searchDto.user}`), $options: 'i' } },
+            { fullName: { $regex: regex.accentsTidy(`${searchDto.user}`), $options: 'i' } },
+            { userName: { $regex: regex.accentsTidy(`${searchDto.user}`), $options: 'i' } },
+          ],
         })
+        .collation({ locale: 'en', strength: 1 })
         .select('-password -refreshToken -__v -refreshTokenExpiry -createdAt -updatedAt')
         .lean()
         .exec();
 
-      // console.log(user);
+      // console.log(regex.accentsTidy(`${searchDto.user}`));
       let users = [];
-      user.map(user => {
+      user1.map(user => {
         users.push({
+          id: user._id,
           avatarSrc: `/uploads/${user.avatar}`,
           fullName: user.fullName,
           userName: user.userName,
