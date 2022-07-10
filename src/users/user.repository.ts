@@ -315,77 +315,101 @@ export class UserRepository {
     }
   }
 
-  async home(user_id: Types.ObjectId) {
+  async home(user_id: Types.ObjectId, topicHome) {
     // get topic of user
     try {
-      let user = await this.userModel
-        .findById({
-          _id: user_id + '',
-        })
-        .lean()
-        .exec();
+      if (topicHome[0] == 'all') {
+        let user = await this.userModel
+          .findById({
+            _id: user_id + '',
+          })
+          .lean()
+          .exec();
 
-      let topic = [];
-      topic = user.topics;
-      // console.log(topic);
+        let topic = [];
+        topic = user.topics;
+        // console.log(topic);
 
-      // find topic in post
-      let posts = await this.postModel
-        .find({
-          topic: { $in: topic },
-        })
-        .lean()
-        .exec();
-      // console.log('post topic', posts);
+        // find topic in post
+        let posts = await this.postModel
+          .find({
+            topic: { $in: topic },
+          })
+          .lean()
+          .exec();
+        // console.log('post topic', posts);
 
-      // get all user follow
+        // get all user follow
 
-      let follows = await this.followModel
-        .find({
-          user_id: user_id + '',
-        })
-        .populate({
-          path: 'followed_user_id',
-          select: '-password -refreshToken -__v -refreshTokenExpiry',
-        })
-        .lean()
-        .exec();
-      // console.log('follows: ', follows);
+        let follows = await this.followModel
+          .find({
+            user_id: user_id + '',
+          })
+          .populate({
+            path: 'followed_user_id',
+            select: '-password -refreshToken -__v -refreshTokenExpiry',
+          })
+          .lean()
+          .exec();
+        // console.log('follows: ', follows);
 
-      let userFollows = [];
-      let postOfUserFollow = [];
+        let userFollows = [];
+        let postOfUserFollow = [];
 
-      follows.map(follow => {
-        userFollows.push(follow.followed_user_id._id + '');
-      });
-      // console.log('userFollows: ', userFollows);
-
-      // get all post of user follow
-      for (let i = 0; i < userFollows.length; i++) {
-        let post = await this.postModel.find({
-          user_id: userFollows[i],
+        follows.map(follow => {
+          userFollows.push(follow.followed_user_id._id + '');
         });
-        for (let i = 0; i < post.length; i++) {
-          postOfUserFollow.push(post[i]);
+        // console.log('userFollows: ', userFollows);
+
+        // get all post of user follow
+        for (let i = 0; i < userFollows.length; i++) {
+          let post = await this.postModel.find({
+            user_id: userFollows[i],
+          });
+          for (let i = 0; i < post.length; i++) {
+            postOfUserFollow.push(post[i]);
+          }
         }
-      }
 
-      // console.log('postFollow', postOfUserFollow);
-      posts.concat(postOfUserFollow);
+        // console.log('postFollow', postOfUserFollow);
+        posts.concat(postOfUserFollow);
 
-      posts = _.shuffle(posts);
+        posts = _.shuffle(posts);
+        // console.log(posts);
 
-      // find all post
-      let allPost = await this.postModel.find();
+        // find all post
+        let allPost = await this.postModel.find();
 
-      allPost.map((post: any) => {
-        if (!posts.includes(post)) {
+        // console.log(allPost);
+        allPost.map(post => {
           posts.push(post);
-        }
-      });
-      // console.log('all post', allPost);
+        });
 
-      return posts;
+        // Array to keep track of duplicates
+        var dups = [];
+        posts = posts.filter(function (el) {
+          // If it is not a duplicate, return true
+          if (dups.indexOf(el._id + '') == -1) {
+            dups.push(el._id + '');
+            return true;
+          }
+
+          return false;
+        });
+
+        return posts;
+      } else {
+        let posts = await this.postModel
+          .find({
+            topic: { $in: topicHome },
+          })
+          .lean()
+          .exec();
+
+        posts = _.shuffle(posts);
+
+        return posts;
+      }
     } catch (error) {
       throw new InternalServerErrorException(error);
     }

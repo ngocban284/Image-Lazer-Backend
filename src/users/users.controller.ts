@@ -1,4 +1,4 @@
-import { Body, Res, Req, HttpStatus, Param, Controller, Delete, Get, Post, Patch, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Body, Res, Req, HttpStatus, Param, Controller, Delete, Get, Post, Patch, UseGuards, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { Response } from 'express';
 import { Schema as MongoSchema, Connection, Types } from 'mongoose';
 import { InjectConnection } from '@nestjs/mongoose';
@@ -21,9 +21,10 @@ export class UsersController {
 
   @Get('/home')
   @UseGuards(JwtGuard)
-  async home(@Req() request, @Res() res: Response) {
+  async home(@Query('topic') topic: [], @Req() request, @Res() res: Response) {
     try {
-      const posts = await this.usersService.home(request.user._id);
+      // console.log(topic);
+      const posts = await this.usersService.home(request.user._id, topic);
       //   console.log(request.user._id);
       return res.status(HttpStatus.OK).json({ errorCode: 0, message: 'Tải trang chủ thành công !', posts });
     } catch (err) {

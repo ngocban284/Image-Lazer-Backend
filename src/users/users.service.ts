@@ -98,8 +98,8 @@ export class UsersService {
     return await this.userRepository.deleteRefreshToken(user_id);
   }
 
-  async home(user_id: Types.ObjectId) {
-    return await this.userRepository.home(user_id);
+  async home(user_id: Types.ObjectId, topic) {
+    return await this.userRepository.home(user_id, topic);
   }
 
   async searchUser(searchUserDto: SearchUserDto) {
