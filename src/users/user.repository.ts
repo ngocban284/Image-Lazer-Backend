@@ -331,14 +331,23 @@ export class UserRepository {
         // console.log(topic);
 
         // find topic in post
-        let posts = await this.postModel
+        let posts: any = await this.postModel
           .find({
             topic: { $in: topic },
           })
           .lean()
           .exec();
         // console.log('post topic', posts);
+        posts.map((post: any) => {
+          post.id = post._id;
+          post.src = `/uploads/${post.image}`;
+          post.width = post.image_width;
+          post.height = post.image_height;
 
+          delete post.image_height;
+          delete post.image_width;
+          delete post._id;
+        });
         // get all user follow
 
         let follows = await this.followModel
@@ -363,41 +372,18 @@ export class UserRepository {
 
         // get all post of user follow
         for (let i = 0; i < userFollows.length; i++) {
-          let post = await this.postModel.find({
-            user_id: userFollows[i],
-          });
+          let post = await this.postModel
+            .find({
+              user_id: userFollows[i],
+            })
+            .lean()
+            .exec();
           for (let i = 0; i < post.length; i++) {
             postOfUserFollow.push(post[i]);
           }
         }
 
-        // console.log('postFollow', postOfUserFollow);
-        posts.concat(postOfUserFollow);
-
-        posts = _.shuffle(posts);
-        // console.log(posts);
-
-        // find all post
-        let allPost = await this.postModel.find();
-
-        // console.log(allPost);
-        allPost.map(post => {
-          posts.push(post);
-        });
-
-        // Array to keep track of duplicates
-        var dups = [];
-        posts = posts.filter(function (el) {
-          // If it is not a duplicate, return true
-          if (dups.indexOf(el._id + '') == -1) {
-            dups.push(el._id + '');
-            return true;
-          }
-
-          return false;
-        });
-
-        posts.map((post: any) => {
+        postOfUserFollow.map((post: any) => {
           post.id = post._id;
           post.src = `/uploads/${post.image}`;
           post.width = post.image_width;
@@ -406,6 +392,46 @@ export class UserRepository {
           delete post.image_height;
           delete post.image_width;
           delete post._id;
+        });
+
+        // console.log('postFollow', postOfUserFollow);
+        posts.concat(postOfUserFollow);
+
+        posts = _.shuffle(posts);
+        // console.log(posts);
+
+        // find all post
+        let allPost: any = await this.postModel.find().lean().exec();
+
+        allPost.map((post: any) => {
+          post.id = post._id;
+          post.src = `/uploads/${post.image}`;
+          post.width = post.image_width;
+          post.height = post.image_height;
+
+          delete post.image_height;
+          delete post.image_width;
+          delete post._id;
+        });
+
+        // console.log(allPost);
+
+        // console.log(allPost);
+        allPost.map(post => {
+          posts.push(post);
+        });
+
+        // console.log(posts);
+        // Array to keep track of duplicates
+        var dups = [];
+        posts = posts.filter(function (el) {
+          // If it is not a duplicate, return true
+          if (dups.indexOf(el.id + '') == -1) {
+            dups.push(el.id + '');
+            return true;
+          }
+
+          return false;
         });
 
         return posts;
