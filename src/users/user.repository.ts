@@ -408,6 +408,16 @@ export class UserRepository {
 
         posts = _.shuffle(posts);
 
+        posts.map((post: any) => {
+          post.id = post._id;
+          post.src = `/uploads/${post.image}`;
+          post.width = post.image_width;
+          post.height = post.image_height;
+
+          delete post.image_height;
+          delete post.image_width;
+          delete post._id;
+        });
         return posts;
       }
     } catch (error) {
