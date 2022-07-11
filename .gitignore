@@ -39,4 +39,4 @@ lerna-debug.log*
 package-lock.json
 
 # Uploads
-/uploads
+# /uploads
