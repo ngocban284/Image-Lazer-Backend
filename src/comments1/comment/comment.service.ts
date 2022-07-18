@@ -1,3 +1,4 @@
+import { Post } from './../../posts/entities/post.entity';
 import { ChatService } from './../../chat/chat.service';
 import { User } from './../../users/entities/user.entity';
 import {
@@ -27,6 +28,7 @@ export class CommentService {
     private readonly commentModel: Model<CommentDocument>,
     @InjectModel(ImageComments.name)
     private readonly imageCommentsModel: Model<ImageCommentsDocument>,
+    @InjectModel(Post.name) private readonly postModel: Model<Post>,
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
     private readonly chatService: ChatService,
@@ -85,24 +87,22 @@ export class CommentService {
   };
 
   updateCommentHistory = async (imageCommentsId: string) => {
-    const imageComment = await this.imageCommentsModel
-      .findById(imageCommentsId)
-      .populate({
-        path: 'comments',
-        model: Comment1.name,
-        populate: [
-          {
-            path: 'author',
-            model: User.name,
-            select: 'email userName _id avatar fullName',
-          },
-          {
-            path: 'likes',
-            model: User.name,
-            select: 'userName _id',
-          },
-        ],
-      });
+    const imageComment = await this.imageCommentsModel.findById(imageCommentsId).populate({
+      path: 'comments',
+      model: Comment1.name,
+      populate: [
+        {
+          path: 'author',
+          model: User.name,
+          select: 'email userName _id avatar fullName',
+        },
+        {
+          path: 'likes',
+          model: User.name,
+          select: 'userName _id',
+        },
+      ],
+    });
 
     if (imageComment) {
       return this.server.emit('directCommentHistory', {
@@ -114,20 +114,22 @@ export class CommentService {
 
   usersCommentedImage = async (imageId: string) => {
     const users = new Set();
-    const commentedImage = await this.imageCommentsModel
-      .findOne({ imageId: imageId })
-      .populate({
-        path: 'comments',
-        model: Comment1.name,
-        select: 'author',
-        populate: {
-          path: 'author',
-          model: User.name,
-          select: 'userName _id',
-        },
-      });
+    const commentedImage = await this.imageCommentsModel.findOne({ imageId: imageId }).populate({
+      path: 'comments',
+      model: Comment1.name,
+      select: 'author',
+      populate: {
+        path: 'author',
+        model: User.name,
+        select: 'userName _id',
+      },
+    });
+    const userImage = await this.postModel.findOne({ _id: imageId });
+    const {user_id} = userImage;
+
     if (commentedImage) {
-      commentedImage.comments.forEach((comment) => {
+      users.add(user_id);
+      commentedImage.comments.forEach(comment => {
         users.add(comment['author']._id);
       });
     }
@@ -135,33 +137,23 @@ export class CommentService {
     return usersCommented;
   };
 
-  directNotificationComment = async (
-    client: Socket,
-    data: DirectNotificationCommentDto,
-  ) => {
+  directNotificationComment = async (client: Socket, data: DirectNotificationCommentDto) => {
     const { user_id: userId } = client.data.user;
 
     const imageId = data.toString();
 
     const usersCommented = await this.usersCommentedImage(imageId);
-    const otherUsers = usersCommented.filter(
-      (user) => user.toString() !== userId.toString(),
-    );
+    const otherUsers = usersCommented.filter(user => user.toString() !== userId.toString());
     const receiverUsers = await this.userModel.find({
       _id: { $in: otherUsers },
     });
+    // console.log(receiverUsers);
     if (receiverUsers && imageId !== '' && userId) {
       const { userName } = await this.userModel.findById(userId);
-      receiverUsers.forEach(async (user) => {
-        const userComment = user.markNotificationAsUnread.comments.find(
-          (comment) =>
-            comment.imageId === imageId && comment.userName === userName,
-        );
+      receiverUsers.forEach(async user => {
+        const userComment = user.markNotificationAsUnread.comments.find(comment => comment.imageId === imageId && comment.userName === userName);
         if (!userComment) {
-          const newMarkCommentAsUnread = [
-            ...user.markNotificationAsUnread.comments,
-            { userName, imageId, date: new Date() },
-          ];
+          const newMarkCommentAsUnread = [...user.markNotificationAsUnread.comments, { userName, imageId, date: new Date() }];
           await this.userModel.findByIdAndUpdate(user._id, {
             markNotificationAsUnread: {
               likes: user.markNotificationAsUnread.likes,
@@ -169,9 +161,7 @@ export class CommentService {
             },
           });
           otherUsers.forEach((userId: string) => {
-            const clientId = this.chatService.getActiveConnectionOfUser(
-              userId.toString(),
-            );
+            const clientId = this.chatService.getActiveConnectionOfUser(userId.toString());
             this.server.to(clientId).emit('notification');
           });
         }
