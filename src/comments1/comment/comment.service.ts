@@ -149,11 +149,12 @@ export class CommentService {
     });
     // console.log(receiverUsers);
     if (receiverUsers && imageId !== '' && userId) {
-      const { userName } = await this.userModel.findById(userId);
+        const {image} = await this.postModel.findOne({ _id: imageId });
+      const { userName, fullName, avatar } = await this.userModel.findById(userId);
       receiverUsers.forEach(async user => {
         const userComment = user.markNotificationAsUnread.comments.find(comment => comment.imageId === imageId && comment.userName === userName);
         if (!userComment) {
-          const newMarkCommentAsUnread = [...user.markNotificationAsUnread.comments, { userName, imageId, date: new Date() }];
+          const newMarkCommentAsUnread = [...user.markNotificationAsUnread.comments, { userName, imageId, date: new Date(), image, fullName, avatar }];
           await this.userModel.findByIdAndUpdate(user._id, {
             markNotificationAsUnread: {
               likes: user.markNotificationAsUnread.likes,
