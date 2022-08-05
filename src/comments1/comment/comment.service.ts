@@ -126,9 +126,8 @@ export class CommentService {
     });
     const userImage = await this.postModel.findOne({ _id: imageId });
     const {user_id} = userImage;
-
+    users.add(user_id);
     if (commentedImage) {
-      users.add(user_id);
       commentedImage.comments.forEach(comment => {
         users.add(comment['author']._id);
       });
@@ -147,9 +146,8 @@ export class CommentService {
     const receiverUsers = await this.userModel.find({
       _id: { $in: otherUsers },
     });
-    // console.log(receiverUsers);
     if (receiverUsers && imageId !== '' && userId) {
-        const {image} = await this.postModel.findOne({ _id: imageId });
+      const {image} = await this.postModel.findOne({ _id: imageId });
       const { userName, fullName, avatar } = await this.userModel.findById(userId);
       receiverUsers.forEach(async user => {
         const userComment = user.markNotificationAsUnread.comments.find(comment => comment.imageId === imageId && comment.userName === userName);
