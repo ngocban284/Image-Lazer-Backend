@@ -1,5 +1,8 @@
+import { Post } from '../../posts/entities/post.entity';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -7,7 +10,10 @@ export class User extends Document {
   userName: string;
 
   @Prop({ required: true })
-  fullname: string;
+  fullName: string;
+
+  @Prop({ required: true })
+  age: number;
 
   @Prop({ required: true, unique: true })
   email: string;
@@ -21,11 +27,66 @@ export class User extends Document {
   @Prop({ required: false })
   profile_url: string;
 
-  @Prop({ required: true, default: false })
+  @Prop({
+    required: false,
+    default: 'default_avatar.png',
+  })
   avatar: string;
 
+  @Prop({ required: false })
+  avatar_height: number;
+
+  @Prop({ required: false })
+  avatar_width: number;
+
   @Prop({ required: false, default: 0 })
-  follow_count: number;
+  following_count: number;
+
+  @Prop({ required: false, default: 0 })
+  follower_count: number;
+
+  @Prop({ required: false })
+  topics: string[];
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: User.name }] })
+  markMessageAsUnread: mongoose.Types.ObjectId[];
+
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: Post.name }] })
+  // markLikeAsUnread: mongoose.Types.ObjectId[];
+
+  @Prop({ type: Object, default: { likes: [], comments: [] } })
+  markNotificationAsUnread: {
+    likes: [];
+    comments: [
+      {
+        userName: string;
+        imageId: string;
+      },
+    ];
+  };
+
+  @Prop({ required: false })
+  refreshToken: string;
+
+  @Prop({ required: false })
+  refreshTokenExpiry: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.pre<User>('save', function (next) {
+  if (!this.isModified('password')) {
+    return next();
+  }
+  bcrypt.hash(this.password, 10, (err, hash) => {
+    if (err) {
+      return next(err);
+    }
+    this.password = hash;
+    next();
+  });
+});
+
+UserSchema.methods.comparePassword = function (password: string) {
+  return bcrypt.compareSync(password, this.password);
+};
