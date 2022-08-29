@@ -1,73 +1,98 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Image Lazer Back End
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the back end for the image sharing social networking site "Image Lazer".
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### Image Lazer Front End
 
-## Description
+If you want to check out our Front End code base, click here [ImageLazer-FrontEnd](https://github.com/NguyenAnhVuong/Image-Lazer-Frontend)
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Image Lazer Demo
 
-## Installation
+<img width="1437" alt="Ảnh chụp Màn hình 2022-08-29 lúc 15 32 23" src="https://user-images.githubusercontent.com/92626813/187164106-73c95a43-a3ef-480f-88f9-b81d7de6c6d0.png">
 
-```bash
-$ npm install
+### Build With
+
+- [![Typescript][typescriptlang.org]][typescript-url]
+- [![NestJS][nestjs.com]][nestjs-url]
+- [![MongoDB][mongodb.com]][mongodb-url]
+- [![SocketIO][socket.io]][socket-url]
+- [![Eslint][eslint.org]][eslint-url]
+- [![Git][gitscm.com]][git-url]
+- [![Github][github.com]][github-url]
+
+### Installation
+
+1. Clone the repo
+
+```sh
+    git clone https://github.com/ngocban284/Image-Lazer-Backend.git
 ```
 
-## Running the app
+2. Install NPM packages
 
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```sh
+    npm install
 ```
 
-## Test
+3. You must enter your Environment variables
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```sh
+    MONGO_USER = ""
+    MONGO_PASSWORD = ""
+    MONGO_HOST = ""
+    MONGO_DATABASE = ""
+    JWT_SECRET = ""
+    JWT_REFRESHTOKEN = ""
+    UPLOAD_LOCATION = ""
 ```
 
-## Support
+4. Run
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```sh
+    npm run start
+```
 
-## Stay in touch
+## The Project
 
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+This is a photo sharing social networking site. Users need to register to experience Image Lazer .
+Users feature :
 
-## License
+- log in
+- log out
+- edit personal information
+- view information of a post
+- save other people's posts to your album
+- create your own albums
+- write a comment for post
+- follow others
+- chat with others
 
-Nest is [MIT licensed](LICENSE).
+### Project Architecture
+
+<img width="1084" alt="Ảnh chụp Màn hình 2022-08-29 lúc 13 46 00" src="https://user-images.githubusercontent.com/92626813/187147352-332e50c1-392a-441d-8550-e7f2d1965edb.png">
+
+- LIKE MODULE : module provides like feature.
+- COMMENT MODULE : module that provides comment feature.
+- POST MODULE : provides user handling with 1 post.
+- ALBUM MODULE : gives users the ability to create their own albums.
+- FOLLOW MODULE : provides users with follow other people's feature.
+- SAVEPOST MODULE : provides the function to save other people's posts to your album.
+- USER MODULE: provides login, logout, post posting, save post, comment, like, chat feature for users.
+- CHAT MODULE : provides chat feature for users.
+
+=>All modules will be included in APP MODULE to ensure the encapsulation of the application.
+
+[typescriptlang.org]: https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white
+[typescript-url]: https://www.typescriptlang.org/
+[nestjs.com]: https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white
+[nestjs-url]: https://nestjs.com/
+[mongodb.com]: https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white
+[mongodb-url]: https://www.mongodb.com/
+[socket.io]: https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101
+[socket-url]: https://socket.io/
+[eslint.org]: https://img.shields.io/badge/ESLint-4B3263?style=for-the-badge&logo=eslint&logoColor=white
+[eslint-url]: https://eslint.org/
+[gitscm.com]: https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white
+[git-url]: https://git-scm.com/
+[github.com]: https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white
+[github-url]: https://github.com/
