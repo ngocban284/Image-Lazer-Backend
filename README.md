@@ -55,6 +55,7 @@ If you want to check out our Front End code base, click here [ImageLazer-FrontEn
 ## The Project
 
 This is a photo sharing social networking site. Users need to register to experience Image Lazer .
+
 Users feature :
 
 - log in
