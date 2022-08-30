@@ -4,7 +4,7 @@ This is the Back-end for our last semester's OOP project, an image sharing socia
 
 ### Image Lazer Front-End
 
-If you want to check out our Front-end code base, click [here](https://github.com/NguyenAnhVuong/Image-Lazer-Frontend)
+If you want to check out our Front-end codebase, click [here](https://github.com/NguyenAnhVuong/Image-Lazer-Frontend)
 
 ## Image Lazer Demo
 
