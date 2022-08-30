@@ -63,6 +63,7 @@ As this is a photo sharing social networking site, registration is needed for us
 - Follow people whose style you jam with
 - Chat with your followers or people you followed
 - And of course you can also change your personal information (avatar, interests, etc...)
+
 ...
 
 ### Project Architecture
