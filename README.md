@@ -4,7 +4,7 @@ This is the back end for the image sharing social networking site "Image Lazer".
 
 ### Image Lazer Front End
 
-If you want to check out our Front End code base, click here [ImageLazer-FrontEnd](https://github.com/NguyenAnhVuong/Image-Lazer-Frontend)
+If you want to check out our Front End code base, click [here](https://github.com/NguyenAnhVuong/Image-Lazer-Frontend)
 
 ## Image Lazer Demo
 
